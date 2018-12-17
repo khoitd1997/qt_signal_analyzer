@@ -28,10 +28,9 @@
 ****************************************************************************/
 
 import QtQuick 2.2
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.0
+import QtQuick.Controls 2.4
 import QtQml 2.12
-
+import QtQuick.Controls.Material 2.4
 
 Item {
     id: button
@@ -40,50 +39,52 @@ Item {
     property variant items: ["first"]
     property int currentSelection: 0
     signal selectionChanged(variant selection)
-
     signal clicked
 
-    implicitWidth: buttonText.implicitWidth + 5
-    implicitHeight: buttonText.implicitHeight + 10
+    implicitWidth: comboBox.implicitWidth + 5
+    implicitHeight: comboBox.implicitHeight + 10
 
-    Button {
-        id: buttonText
+    ComboBox {
+        id: comboBox
         width: parent.width
         height: parent.height
+        hoverEnabled : true
+        model: button.items
 
-         style: ButtonStyle {
-            label: Component {
-                Text {
-                    text: button.text + button.items[currentSelection]
-                    clip: true
-                    wrapMode: Text.WordWrap
+        delegate: ItemDelegate {
+                width: comboBox.width
+                contentItem: Text {
+                    text: modelData
+                    color: "#21be2b"
+                    font: comboBox.font
+                    elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    anchors.fill: parent
                 }
+                highlighted: comboBox.highlightedIndex === index
             }
+
+        contentItem: Label {
+            leftPadding: 10
+            rightPadding: comboBox.indicator.width + comboBox.spacing
+            text: button.text + comboBox.displayText
+            font: comboBox.font
+            color: comboBox.pressed ? "#17a81a" : "#21be2b"
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
         }
 
-      menu: Menu {
-            id: menu
-            visible: true
-            Instantiator {
-                model: button.items
-                MenuItem {
-                text: modelData
-                onTriggered: {
-                    currentSelection = index;
-                    selectionChanged(button.items[index]);
-                }
-                }
-                onObjectAdded: menu.insertItem(index, object)
-                onObjectRemoved: menu.removeItem(object)
-            }
+        background: Rectangle {
+            radius: 4
+            implicitWidth: 120
+            implicitHeight: 40
+            border.color:  "#17a81a"
+            border.width: comboBox.visualFocus ? 2 : 1
+            color: comboBox.hovered ? "#616161" : "#424242"
         }
 
-        onClicked: {
-            currentSelection = (currentSelection + 1) % items.length;
-            selectionChanged(button.items[currentSelection]);
+        onActivated: {
+            currentSelection = index;
+            selectionChanged(button.items[index]);
         }
     }
 }

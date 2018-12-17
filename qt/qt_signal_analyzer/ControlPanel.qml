@@ -29,8 +29,12 @@
 
 import QtQuick 2.1
 import QtQuick.Layouts 1.0
+import QtQuick.Controls 2.5
+import QtQuick 2.12
+import QtQuick.Controls.Material 2.4
 
 ColumnLayout {
+    id: colLayout
     property alias antialiasButton: antialiasButton
     spacing: 8
     Layout.fillHeight: true
@@ -40,11 +44,18 @@ ColumnLayout {
     signal signalSourceChanged(string source, int signalCount, int sampleCount);
     signal antialiasingEnabled(bool enabled)
 
-    Text {
-        text: "Scope"
-        font.pointSize: 18
-        color: "white"
-    }
+    SystemPalette { id: sysPalette; colorGroup: SystemPalette.Active }
+
+//    Label  {
+////        leftPadding: 2
+//        text: "Control Menu"
+//        font.pointSize: 18
+//        color: "#FAFAFA"
+//        background: Rectangle{
+//            anchors.fill: parent
+//            color: "#424242"
+//        }
+//    }
 
     MultiButton {
         text: "Graph: "
@@ -76,7 +87,7 @@ ColumnLayout {
     }
 
     MultiButton {
-        text: "Refresh rate: "
+        text: "Refresh Rate: "
         items: ["1", "24", "60"]
         currentSelection: 2
         onSelectionChanged: refreshRateChanged(items[currentSelection]);

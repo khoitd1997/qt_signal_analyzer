@@ -28,33 +28,28 @@
 ****************************************************************************/
 
 #include "datasource.h"
+
+#include <QApplication>
+#include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QQuickStyle>
 #include <QtCore/QDir>
+#include <QtDebug>
 #include <QtQml/QQmlContext>
 #include <QtQml/QQmlEngine>
 #include <QtQuick/QQuickView>
-#include <QtWidgets/QApplication>
 
 int main(int argc, char *argv[]) {
   // Qt Charts uses Qt Graphics View Framework for drawing, therefore
   // QApplication must be used.
+  QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication app(argc, argv);
-
-  QQmlApplicationEngine engine(QUrl("qrc:/main.qml"));
-
-  // The following are needed to make examples run without having to install the
-  // module in desktop environments.
-#ifdef Q_OS_WIN
-  QString extraImportPath(QStringLiteral("%1/../../../../%2"));
-#else
-  QString extraImportPath(QStringLiteral("%1/../../../%2"));
-#endif
-  //   viewer.engine()->addImportPath(extraImportPath.arg(
-  //       QGuiApplication::applicationDirPath(), QString::fromLatin1("qml")));
-  //   QObject::connect(engine, &QQmlEngine::quit, &viewer, &QWindow::close);
-
+  QQuickStyle::setStyle("Material");
+  QQuickStyle::setFallbackStyle("Material");
+  //  qDebug() << "All Themes: " << QQuickStyle::availableStyles();
+  QQmlApplicationEngine engine;
+  engine.load(QUrl("qrc:/main.qml"));
   DataSource dataSource(&engine);
   engine.rootContext()->setContextProperty("dataSource", &dataSource);
-
   return app.exec();
 }

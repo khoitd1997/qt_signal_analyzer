@@ -30,17 +30,24 @@
 import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls.Material 2.4
+
 
 //![1]
 ApplicationWindow {
+    Material.theme: Material.Dark
+    Material.accent: Material.Teal
+
     id: main
-    width: 600
-    height: 400
+    visible: true
     visibility: Window.Maximized
-    color: "#404040"
-    flags: Qt.Window | Qt. WindowTitleHint | Qt.WindowMaximizeButtonHint
-               | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint
+    flags: Qt.Window | Qt. WindowTitleHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint
     title: "Qt Signal Analyzer"
+
+
+    color: "#212121"
+    Material.foreground: Material.LightBlue
 
 
     ControlPanel {
