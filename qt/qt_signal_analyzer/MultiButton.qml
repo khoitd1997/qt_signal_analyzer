@@ -52,8 +52,8 @@ Item {
         font.pointSize: 13
         hoverEnabled : true
         model: button.items
-        transformOrigin: Popup.Bottom
         indicator.rotation: 90
+        indicator.x: comboText.implicitWidth
 
         delegate: ItemDelegate {
                 width: comboBox.width
@@ -78,8 +78,6 @@ Item {
             elide: Text.ElideRight
         }
 
-                indicator.x: comboText.implicitWidth
-
         background: Rectangle {
             radius: 4
             implicitWidth: 40
@@ -89,24 +87,6 @@ Item {
             color: comboBox.hovered ? "#616161" : "#424242"
         }
 
-//        indicator: Canvas {
-//            id: canvas
-
-//            width: 12
-//            height: 8
-//            contextType: "2d"
-
-//            onPaint: {
-//                context.reset();
-//                context.moveTo(0, 0);
-//                context.lineTo(width, 0);
-//                context.lineTo(width / 2, height);
-//                context.closePath();
-//                context.fillStyle = comboBox.pressed ? "#17a81a" : "#21be2b";
-//                context.fill();
-//            }
-//        }
-
         popup: Popup {
             id: popUp
             y: comboBox.height - 1
@@ -115,16 +95,16 @@ Item {
             padding: 1
 
             enter: Transition {
-                RotationAnimator { target: comboBox.indicator
-                    from: 90;
-                            to: 0;
+                RotationAnimator { target: comboBox.indicator;
+                from: 90;
+                to: 0;
                 duration: 150}
             }
 
             exit: Transition {
-                RotationAnimator { target: comboBox.indicator
-                                    from: 0;
-                                            to: 90;
+                RotationAnimator { target: comboBox.indicator; 
+                from: 0;
+                to: 90;
                 duration: 150}
             }
 
