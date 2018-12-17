@@ -28,12 +28,20 @@
 ****************************************************************************/
 
 import QtQuick 2.0
+import QtQuick.Window 2.0
+import QtQuick.Controls 1.1
 
 //![1]
-Item {
+ApplicationWindow {
     id: main
     width: 600
     height: 400
+    visibility: Window.Maximized
+    color: "#404040"
+    flags: Qt.Window | Qt. WindowTitleHint | Qt.WindowMaximizeButtonHint
+               | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint
+    title: "Qt Signal Analyzer"
+
 
     ControlPanel {
         id: controlPanel
@@ -54,9 +62,6 @@ Item {
         onSeriesTypeChanged: scopeView.changeSeriesType(type);
         onRefreshRateChanged: scopeView.changeRefreshRate(rate);
         onAntialiasingEnabled: scopeView.antialiasing = enabled;
-        onOpenGlChanged: {
-            scopeView.openGL = enabled;
-        }
     }
 
 //![2]

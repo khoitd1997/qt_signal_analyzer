@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "datasource.h"
+#include <QQmlApplicationEngine>
 #include <QtCore/QDir>
 #include <QtQml/QQmlContext>
 #include <QtQml/QQmlEngine>
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
   // QApplication must be used.
   QApplication app(argc, argv);
 
-  QQuickView viewer;
+  QQmlApplicationEngine engine(QUrl("qrc:/main.qml"));
 
   // The following are needed to make examples run without having to install the
   // module in desktop environments.
@@ -48,20 +49,12 @@ int main(int argc, char *argv[]) {
 #else
   QString extraImportPath(QStringLiteral("%1/../../../%2"));
 #endif
-  viewer.engine()->addImportPath(extraImportPath.arg(
-      QGuiApplication::applicationDirPath(), QString::fromLatin1("qml")));
-  QObject::connect(viewer.engine(), &QQmlEngine::quit, &viewer,
-                   &QWindow::close);
+  //   viewer.engine()->addImportPath(extraImportPath.arg(
+  //       QGuiApplication::applicationDirPath(), QString::fromLatin1("qml")));
+  //   QObject::connect(engine, &QQmlEngine::quit, &viewer, &QWindow::close);
 
-  viewer.setTitle(QStringLiteral("Qt Signal Analyzer"));
-
-  DataSource dataSource(&viewer);
-  viewer.rootContext()->setContextProperty("dataSource", &dataSource);
-
-  viewer.setSource(QUrl("qrc:/main.qml"));
-  viewer.setResizeMode(QQuickView::SizeRootObjectToView);
-  viewer.setColor(QColor("#404040"));
-  viewer.show();
+  DataSource dataSource(&engine);
+  engine.rootContext()->setContextProperty("dataSource", &dataSource);
 
   return app.exec();
 }

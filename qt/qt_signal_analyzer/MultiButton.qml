@@ -27,9 +27,11 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick 2.2
+import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.0
+import QtQml 2.12
+
 
 Item {
     id: button
@@ -49,7 +51,7 @@ Item {
         width: parent.width
         height: parent.height
 
-        style: ButtonStyle {
+         style: ButtonStyle {
             label: Component {
                 Text {
                     text: button.text + button.items[currentSelection]
@@ -61,6 +63,24 @@ Item {
                 }
             }
         }
+
+      menu: Menu {
+            id: menu
+            visible: true
+            Instantiator {
+                model: button.items
+                MenuItem {
+                text: modelData
+                onTriggered: {
+                    currentSelection = index;
+                    selectionChanged(button.items[index]);
+                }
+                }
+                onObjectAdded: menu.insertItem(index, object)
+                onObjectRemoved: menu.removeItem(object)
+            }
+        }
+
         onClicked: {
             currentSelection = (currentSelection + 1) % items.length;
             selectionChanged(button.items[currentSelection]);
