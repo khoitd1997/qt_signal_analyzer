@@ -32,6 +32,7 @@ import QtQuick.Controls 2.4
 import QtQml 2.12
 import QtQuick.Controls.Material 2.4
 
+
 Item {
     id: button
 
@@ -41,8 +42,8 @@ Item {
     signal selectionChanged(variant selection)
     signal clicked
 
-    implicitWidth: comboBox.implicitWidth + 5
-    implicitHeight: comboBox.implicitHeight + 10
+    implicitWidth: comboBox.implicitWidth
+    implicitHeight: comboBox.implicitHeight
 
     ComboBox {
         id: comboBox
@@ -51,6 +52,8 @@ Item {
         font.pointSize: 13
         hoverEnabled : true
         model: button.items
+        transformOrigin: Popup.Bottom
+        indicator.rotation: 90
 
         delegate: ItemDelegate {
                 width: comboBox.width
@@ -65,8 +68,9 @@ Item {
             }
 
         contentItem: Label {
+            id: comboText
             leftPadding: 10
-            rightPadding: comboBox.indicator.width + comboBox.spacing
+            rightPadding: comboBox.spacing
             text: button.text + comboBox.displayText
             font: comboBox.font
             color: "#ff8f00"
@@ -74,13 +78,68 @@ Item {
             elide: Text.ElideRight
         }
 
+                indicator.x: comboText.implicitWidth
+
         background: Rectangle {
             radius: 4
-            implicitWidth: 120
+            implicitWidth: 40
             implicitHeight: 40
             border.color:  "#c56000"
             border.width: comboBox.visualFocus ? 2 : 1
             color: comboBox.hovered ? "#616161" : "#424242"
+        }
+
+//        indicator: Canvas {
+//            id: canvas
+
+//            width: 12
+//            height: 8
+//            contextType: "2d"
+
+//            onPaint: {
+//                context.reset();
+//                context.moveTo(0, 0);
+//                context.lineTo(width, 0);
+//                context.lineTo(width / 2, height);
+//                context.closePath();
+//                context.fillStyle = comboBox.pressed ? "#17a81a" : "#21be2b";
+//                context.fill();
+//            }
+//        }
+
+        popup: Popup {
+            id: popUp
+            y: comboBox.height - 1
+            width: comboBox.width
+            implicitHeight: contentItem.implicitHeight
+            padding: 1
+
+            enter: Transition {
+                RotationAnimator { target: comboBox.indicator
+                    from: 90;
+                            to: 0;
+                duration: 150}
+            }
+
+            exit: Transition {
+                RotationAnimator { target: comboBox.indicator
+                                    from: 0;
+                                            to: 90;
+                duration: 150}
+            }
+
+            contentItem: ListView {
+                clip: true
+                implicitHeight: contentHeight
+                model: comboBox.popup.visible ? comboBox.delegateModel : null
+                currentIndex: comboBox.highlightedIndex
+                ScrollIndicator.vertical: ScrollIndicator { }
+            }
+
+            background: Rectangle {
+                color: popUp.hovered ? "#616161" : "#424242"
+                radius: 4
+            }
         }
 
         onActivated: {
