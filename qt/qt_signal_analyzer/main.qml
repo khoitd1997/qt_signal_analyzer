@@ -40,6 +40,11 @@ ApplicationWindow {
     Material.accent: Material.Teal
 
     id: main
+
+    // specify width and height for when minimized
+    width: 600
+    height: 400
+
     visible: true
     visibility: Window.Maximized
     flags: Qt.Window | Qt. WindowTitleHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint

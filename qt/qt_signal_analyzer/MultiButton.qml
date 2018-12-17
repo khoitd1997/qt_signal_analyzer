@@ -46,8 +46,9 @@ Item {
 
     ComboBox {
         id: comboBox
-        width: parent.width
-        height: parent.height
+        font.capitalization: Font.Capitalize
+        font.weight: Font.DemiBold
+        font.pointSize: 13
         hoverEnabled : true
         model: button.items
 
@@ -55,7 +56,7 @@ Item {
                 width: comboBox.width
                 contentItem: Text {
                     text: modelData
-                    color: "#21be2b"
+                    color: "#ff8f00"
                     font: comboBox.font
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
@@ -68,7 +69,7 @@ Item {
             rightPadding: comboBox.indicator.width + comboBox.spacing
             text: button.text + comboBox.displayText
             font: comboBox.font
-            color: comboBox.pressed ? "#17a81a" : "#21be2b"
+            color: "#ff8f00"
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
         }
@@ -77,7 +78,7 @@ Item {
             radius: 4
             implicitWidth: 120
             implicitHeight: 40
-            border.color:  "#17a81a"
+            border.color:  "#c56000"
             border.width: comboBox.visualFocus ? 2 : 1
             color: comboBox.hovered ? "#616161" : "#424242"
         }
