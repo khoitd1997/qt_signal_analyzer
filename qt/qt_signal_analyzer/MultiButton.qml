@@ -31,7 +31,7 @@ import QtQuick 2.2
 import QtQuick.Controls 2.4
 import QtQml 2.12
 import QtQuick.Controls.Material 2.4
-
+import "."
 
 Item {
     id: button
@@ -49,7 +49,7 @@ Item {
         id: comboBox
         font.capitalization: Font.Capitalize
         font.weight: Font.DemiBold
-        font.pointSize: 13
+        font.pointSize: UIStyle.buttonFontSize
         hoverEnabled : true
         model: button.items
         indicator.rotation: 90
@@ -59,7 +59,7 @@ Item {
                 width: comboBox.width
                 contentItem: Text {
                     text: modelData
-                    color: "#ff8f00"
+                    color: UIStyle.buttonTextColor
                     font: comboBox.font
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
@@ -73,7 +73,7 @@ Item {
             rightPadding: comboBox.spacing
             text: button.text + comboBox.displayText
             font: comboBox.font
-            color: "#ff8f00"
+            color: UIStyle.buttonTextColor
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
         }
@@ -82,9 +82,9 @@ Item {
             radius: 4
             implicitWidth: 40
             implicitHeight: 40
-            border.color:  "#c56000"
+            border.color:  UIStyle.buttonBorderColor
             border.width: comboBox.visualFocus ? 2 : 1
-            color: comboBox.hovered ? "#616161" : "#424242"
+            color: comboBox.hovered ? UIStyle.buttonBgHovered : UIStyle.buttonBgUnhovered
         }
 
         popup: Popup {
@@ -117,7 +117,7 @@ Item {
             }
 
             background: Rectangle {
-                color: popUp.hovered ? "#616161" : "#424242"
+                color: popUp.hovered ? UIStyle.buttonBgHovered : UIStyle.buttonBgUnhovered
                 radius: 4
             }
         }

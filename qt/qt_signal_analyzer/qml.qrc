@@ -4,5 +4,7 @@
         <file>ControlPanel.qml</file>
         <file>MultiButton.qml</file>
         <file>ScopeView.qml</file>
+        <file>UIStyle.qml</file>
+        <file>qmldir</file>
     </qresource>
 </RCC>
