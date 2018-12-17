@@ -9,6 +9,8 @@ Device Firmware and Qt front-end code for a basic signal analyzer
 - Manual and Dynamic scaling
 - Control device sampling mode
 - Saving and Loading data and graphs
+- Allow selection of multiple devices
+- Maybe some DSP features
 
 ## Structure
 
