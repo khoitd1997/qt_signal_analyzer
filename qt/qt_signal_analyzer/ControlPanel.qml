@@ -34,13 +34,13 @@ import QtQuick 2.12
 import QtQuick.Controls.Material 2.4
 import "."
 
-Column {
+Item {
     id: colLayout
-    spacing: 5
     Layout.fillHeight: true
-    height: (checkBoxColumn.height + gridButton.height) * 1.1
+    height:  checkBoxColumn.height
+    width: parent.width
 
-    property alias antialiasButton: antialiasButton
+//    property alias antialiasButton: antialiasButton
     signal animationsEnabled(bool enabled)
     signal refreshRateChanged(variant rate);
     signal signalSourceChanged(string source, int signalCount, int sampleCount);
@@ -50,15 +50,48 @@ Column {
     signal seriesNameChanged(int id, string newName)
     signal seriesDisplayChanged(int id, bool isOn)
 
-    ButtonGroup {
-        buttons: checkBoxColumn.children
+//    ButtonGroup {
+//        buttons: checkBoxColumn.children
+//    }
+    CollapsibleSection {
+            id: sectionHeader1
+            width: parent.width
+            displayText: "Signal Select"
+            anchors.top: parent.top
+            onIsClicked: {
+                isOn ? tabUp1.running = true : tabDown1.running = true
+                isOn ? section1.visible = false : section1.visible = true
+            }
     }
 
-        Layout.topMargin: 10
+    Rectangle {
+        PropertyAnimation { id: tabDown1;
+                            easing.type: Easing.Linear	;
+                            target: section1;
+                            property: "height";
+                            from: 0;
+                            to: checkBoxColumn.height + currentSignalButton.height + 10;
+                            duration: 150 }
+
+        PropertyAnimation { id: tabUp1;
+                            easing.type: Easing.Linear;
+                            target: section1;
+                            property: "height";
+                            from: checkBoxColumn.height + currentSignalButton.height + 10;
+                            to: 0;
+                            duration: 150 }
+        id: section1
+        width: sectionHeader1.width
+        visible: false
+        anchors.top: sectionHeader1.bottom
+        color: "#3A3A3A"
+
+
         Row  {
             width: parent.width
             id: checkBoxColumn
-            spacing: 20
+            spacing: parent.width / 12
+            topPadding: 10
             Repeater {
                 model: 4
                 CheckboxButton {
@@ -75,12 +108,53 @@ Column {
             }
         }
 
-        Grid {
-            id: gridButton
-            spacing: 20
-            columns: 3
+        MultiButton {
+                anchors.top: checkBoxColumn.bottom
+                anchors.topMargin: 5
+                anchors.horizontalCenter: checkBoxColumn.horizontalCenter
+                id: currentSignalButton
+                text: "Current Signal: "
+                items: ["Signal 1", "Signal 2", "Signal 3", "Signal 4"]
+                currentSelection: 0
+//                onSelectionChanged:
+        }
+    }
+
+    CollapsibleSection {
+            id: sectionHeader2
             width: parent.width
-            MultiButton {
+            anchors.top: section1.bottom
+            anchors.topMargin: 10
+            displayText: "Signal Display Settings"
+            onIsClicked: {
+                isOn ? tabUp2.running = true : tabDown2.running = true
+            }
+    }
+
+    Rectangle {
+        PropertyAnimation { id: tabDown2;
+                            easing.type: Easing.Linear	;
+                            target: section2;
+                            property: "visible";
+                            from: false;
+                            to: true;
+                            duration: 150 }
+
+        PropertyAnimation { id: tabUp2;
+                            easing.type: Easing.Linear;
+                            target: section2;
+                            property: "visible";
+                            from: true;
+                            to: false;
+                            duration: 150 }
+        id: section2
+        width: sectionHeader1.width
+        visible: false
+        anchors.top: sectionHeader2.bottom
+        color: "#3A3A3A"
+
+        Grid {
+        MultiButton {
                 id: signalSourceButton
                 text: "Source: "
                 items: ["sin", "linear"]
@@ -115,7 +189,8 @@ Column {
             items: ["OFF", "ON"]
             enabled: true
             currentSelection: 0
-            onSelectionChanged: antialiasingEnabled(currentSelection == 1); 
+            onSelectionChanged: antialiasingEnabled(currentSelection == 1);
             }
         }
+}
 }

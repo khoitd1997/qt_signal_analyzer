@@ -8,6 +8,7 @@ Rectangle {
     height: sectionText.height
     width: parent.width
     property bool isTicked: false
+    property string displayText: "Default Collapsible Header"
     signal isClicked(bool isOn)
     radius: 4
     color: "#3A3A3A"
@@ -30,7 +31,7 @@ Rectangle {
         height: Text.paintedHeight
         anchors.top: parent.top
         anchors.left: parent.left
-        text: "Section Header"
+        text: sectionHeader.displayText
         background: Rectangle {
             color: "transparent"
 

@@ -53,49 +53,50 @@ ApplicationWindow {
     color: "#272727"
     Material.foreground: Material.LightBlue
 
-    CollapsibleSection {
-            id: sectionHeader1
-            width: main.width / 3
-            onIsClicked: {
-                isOn ? tabUp1.running = true : tabDown1.running = true
-//                isOn ? section1.visible = false : section1.visible = true
+//    CollapsibleSection {
+//            id: sectionHeader1
+//            width: parent.width / 3
+//            displayText: "Signal Display Settings"
+//            onIsClicked: {
+//                isOn ? tabUp1.running = true : tabDown1.running = true
+////                isOn ? section1.visible = false : section1.visible = true
 
-            }
-    }
+//            }
+//    }
 
-    Rectangle {
-        PropertyAnimation { id: tabDown1;
-                            easing.type: Easing.Linear	;
-                            target: section1;
-                            property: "visible";
-                            from: false;
-                            to: true;
-                            duration: 150 }
+//    Rectangle {
+//        PropertyAnimation { id: tabDown1;
+//                            easing.type: Easing.Linear	;
+//                            target: section1;
+//                            property: "visible";
+//                            from: false;
+//                            to: true;
+//                            duration: 150 }
 
-        PropertyAnimation { id: tabUp1;
-                            easing.type: Easing.Linear;
-                            target: section1;
-                            property: "visible";
-                            from: true;
-                            to: false;
-                            duration: 150 }
+//        PropertyAnimation { id: tabUp1;
+//                            easing.type: Easing.Linear;
+//                            target: section1;
+//                            property: "visible";
+//                            from: true;
+//                            to: false;
+//                            duration: 150 }
 
 
-        id: section1
-        width: sectionHeader1.width
-        height: controlPanel.height
-        visible: false
-        anchors.top: sectionHeader1.bottom
-        color: "#3A3A3A"
+//        id: section1
+//        width: parent.width / 3
+//        height: controlPanel.height
+//        visible: false
+//        anchors.top: parent.top
+//        color: "#3A3A3A"
 
     ControlPanel {
         id: controlPanel
-        topPadding: 5
+        anchors.topMargin: 10
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.leftMargin: 10
-        width: section1.width
+        width: parent.width / 3
 
         onSignalSourceChanged: {
             if (source == "sin")
@@ -110,13 +111,12 @@ ApplicationWindow {
         onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
     }
 
-}
     ScopeView {
         id: scopeView
-        width: section1.width - controlPanel.width
+        width: parent.width - controlPanel.width
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.left: section1.right
+        anchors.left: controlPanel.right
         height: parent.height * 0.8
 
         onOpenGLSupportedChanged: {
