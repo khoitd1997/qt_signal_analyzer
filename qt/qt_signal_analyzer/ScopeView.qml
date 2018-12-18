@@ -52,7 +52,7 @@ ChartView {
 
     LineSeries {
         id: lineSeries0
-        name: "signal 0"
+        name: "Signal 0"
         axisX: ValueAxis {
             min: 0
             max: 1024
@@ -67,7 +67,7 @@ ChartView {
     LineSeries {
         id: lineSeries1
         visible: true
-        name: "signal 1"
+        name: "Signal 1"
         axisX: ValueAxis {
             min: 0
             max: 1024
@@ -82,7 +82,7 @@ ChartView {
 
     LineSeries {
         id: lineSeries2
-        name: "signal 2"
+        name: "Signal 2"
         axisX: ValueAxis {
             min: 0
             max: 1024
@@ -97,7 +97,7 @@ ChartView {
     LineSeries {
         id: lineSeries3
         visible: true
-        name: "signal 3"
+        name: "Signal 3"
         axisX: ValueAxis {
             min: 0
             max: 1024

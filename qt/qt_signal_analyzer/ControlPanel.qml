@@ -75,26 +75,6 @@ ColumnLayout {
                 }
             }
         }
-
-//        CheckboxButton {
-//            numberID: 0
-//            text: "Signal 0"
-//            isChecked: true
-//            onNameChanged: {
-//                seriesNameChanged(numberID, newName)
-//            }
-//            onCheckChanged: {
-//                seriesDisplayChanged(numberID, checkStatus)
-//            }
-//        }
-
-//        CheckboxButton {
-//            text: "Signal 2"
-//            isChecked: true
-//            onCheckChanged: {
-//            }
-//        }
-
     }
 
     MultiButton {
@@ -105,7 +85,8 @@ ColumnLayout {
         onSelectionChanged: signalSourceChanged(
                                 selection,
                                 5,
-                                sampleCountButton.items[sampleCountButton.currentSelection]);
+                                sampleCountButton.items[sampleCountButton.currentSelection]
+                                );
     }
 
     MultiButton {
@@ -116,7 +97,8 @@ ColumnLayout {
         onSelectionChanged: signalSourceChanged(
                                 signalSourceButton.items[signalSourceButton.currentSelection],
                                 5,
-                                selection);
+                                selection
+                                );
     }
 
     MultiButton {
