@@ -32,6 +32,7 @@ import QtQuick.Layouts 1.0
 import QtQuick.Controls 2.5
 import QtQuick 2.12
 import QtQuick.Controls.Material 2.4
+import "."
 
 ColumnLayout {
     id: colLayout
@@ -39,29 +40,61 @@ ColumnLayout {
     spacing: 8
     Layout.fillHeight: true
     signal animationsEnabled(bool enabled)
-    signal seriesTypeChanged(string type)
     signal refreshRateChanged(variant rate);
     signal signalSourceChanged(string source, int signalCount, int sampleCount);
     signal antialiasingEnabled(bool enabled)
 
-    SystemPalette { id: sysPalette; colorGroup: SystemPalette.Active }
+    // graph chooser section
+    signal seriesNameChanged(int id, string newName)
+    signal seriesDisplayChanged(int id, bool isOn)
 
-//    Label  {
-////        leftPadding: 2
-//        text: "Control Menu"
-//        font.pointSize: 18
-//        color: "#FAFAFA"
-//        background: Rectangle{
-//            anchors.fill: parent
-//            color: "#424242"
+    ButtonGroup {
+        buttons: checkBoxColumn.children
+    }
+
+    ColumnLayout {
+        id: checkBoxColumn
+        spacing: 16
+        Label {
+            text: "Signal List"
+            font.pointSize: 24
+            color: UIStyle.buttonTextColor
+        }
+
+        Repeater {
+            model: 4
+            CheckboxButton {
+                numberID: index
+                text: "Signal " + index
+                isChecked: true
+                onNameChanged: {
+                    seriesNameChanged(numberID, newName)
+                }
+                onCheckChanged: {
+                    seriesDisplayChanged(numberID, checkStatus)
+                }
+            }
+        }
+
+//        CheckboxButton {
+//            numberID: 0
+//            text: "Signal 0"
+//            isChecked: true
+//            onNameChanged: {
+//                seriesNameChanged(numberID, newName)
+//            }
+//            onCheckChanged: {
+//                seriesDisplayChanged(numberID, checkStatus)
+//            }
 //        }
-//    }
 
-    MultiButton {
-        text: "Graph: "
-        items: ["line", "scatter"]
-        currentSelection: 0
-        onSelectionChanged: seriesTypeChanged(items[currentSelection]);
+//        CheckboxButton {
+//            text: "Signal 2"
+//            isChecked: true
+//            onCheckChanged: {
+//            }
+//        }
+
     }
 
     MultiButton {

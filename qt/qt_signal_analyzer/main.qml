@@ -55,6 +55,7 @@ ApplicationWindow {
     Material.foreground: Material.LightBlue
 
 
+
     ControlPanel {
         id: controlPanel
         anchors.top: parent.top
@@ -62,7 +63,7 @@ ApplicationWindow {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.leftMargin: 10
-//![1]
+////![1]
 
         onSignalSourceChanged: {
             if (source == "sin")
@@ -71,9 +72,10 @@ ApplicationWindow {
                 dataSource.generateData(1, signalCount, sampleCount);
             scopeView.axisX().max = sampleCount;
         }
-        onSeriesTypeChanged: scopeView.changeSeriesType(type);
         onRefreshRateChanged: scopeView.changeRefreshRate(rate);
         onAntialiasingEnabled: scopeView.antialiasing = enabled;
+        onSeriesNameChanged: scopeView.changeSeriesName(id, newName);
+        onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
     }
 
 //![2]

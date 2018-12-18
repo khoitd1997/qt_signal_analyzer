@@ -50,36 +50,62 @@ ChartView {
         }
     }
 
-    ValueAxis {
-        id: axisY1
-        min: -1
-        max: 4
-    }
-
-    ValueAxis {
-        id: axisY2
-        min: -10
-        max: 5
-    }
-
-    ValueAxis {
-        id: axisX
-        min: 0
-        max: 1024
+    LineSeries {
+        id: lineSeries0
+        name: "signal 0"
+        axisX: ValueAxis {
+            min: 0
+            max: 1024
+        }
+        axisY: ValueAxis {
+            min: 0
+            max: 5
+        }
+        useOpenGL: chartView.openGL
     }
 
     LineSeries {
         id: lineSeries1
+        visible: true
         name: "signal 1"
-        axisX: axisX
-        axisY: axisY1
+        axisX: ValueAxis {
+            min: 0
+            max: 1024
+        }
+
+        axisYRight: ValueAxis {
+            min: 0
+            max: 5
+        }
         useOpenGL: chartView.openGL
     }
+
     LineSeries {
         id: lineSeries2
         name: "signal 2"
-        axisX: axisX
-        axisYRight: axisY2
+        axisX: ValueAxis {
+            min: 0
+            max: 1024
+        }
+        axisY: ValueAxis {
+            min: 0
+            max: 1024
+        }
+        useOpenGL: chartView.openGL
+    }
+
+    LineSeries {
+        id: lineSeries3
+        visible: true
+        name: "signal 3"
+        axisX: ValueAxis {
+            min: 0
+            max: 1024
+        }
+        axisYRight: ValueAxis {
+            min: 0
+            max: 1024
+        }
         useOpenGL: chartView.openGL
     }
 //![1]
@@ -93,11 +119,20 @@ ChartView {
         onTriggered: {
             dataSource.update(chartView.series(0));
             dataSource.update(chartView.series(1));
+            dataSource.update(chartView.series(2));
+            dataSource.update(chartView.series(3));
         }
     }
-    //![2]
 
-    //![3]
+    function changeSeriesName(id, newName) {
+        chartView.series(id).name = newName;
+    }
+
+    function changeSeriesDisplay(id, isOn) {
+        chartView.series(id).visible = isOn
+    }
+
+
     function changeSeriesType(type) {
         chartView.removeAllSeries();
 
@@ -132,7 +167,6 @@ ChartView {
         return Qt.createQmlObject("import QtQuick 2.0; import QtCharts 2.0; ValueAxis { min: "
                                   + min + "; max: " + max + " }", chartView);
     }
-    //![3]
 
     function setAnimations(enabled) {
         if (enabled)

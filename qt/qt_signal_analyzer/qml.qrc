@@ -6,5 +6,6 @@
         <file>ScopeView.qml</file>
         <file>UIStyle.qml</file>
         <file>qmldir</file>
+        <file>CheckboxButton.qml</file>
     </qresource>
 </RCC>
