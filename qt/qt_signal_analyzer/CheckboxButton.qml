@@ -59,6 +59,7 @@ Item {
         topPadding: checkBox.height / 5
         leftPadding: checkBox.spacing
         rightPadding: checkBox.spacing
+        font.weight: Font.DemiBold
         color: UIStyle.buttonTextColor
 
         background: Rectangle {

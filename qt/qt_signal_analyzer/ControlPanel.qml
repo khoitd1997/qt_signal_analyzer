@@ -36,9 +36,11 @@ import "."
 
 ColumnLayout {
     id: colLayout
-    property alias antialiasButton: antialiasButton
-    spacing: 8
+    spacing: 20
     Layout.fillHeight: true
+    height: parent.height
+
+    property alias antialiasButton: antialiasButton
     signal animationsEnabled(bool enabled)
     signal refreshRateChanged(variant rate);
     signal signalSourceChanged(string source, int signalCount, int sampleCount);
@@ -51,69 +53,74 @@ ColumnLayout {
     ButtonGroup {
         buttons: checkBoxColumn.children
     }
-
     ColumnLayout {
-        id: checkBoxColumn
-        spacing: 16
-        Label {
-            text: "Signal List"
-            font.pointSize: 24
-            color: UIStyle.buttonTextColor
-        }
-
-        Repeater {
-            model: 4
-            CheckboxButton {
-                numberID: index
-                text: "Signal " + index
-                isChecked: true
-                onNameChanged: {
-                    seriesNameChanged(numberID, newName)
-                }
-                onCheckChanged: {
-                    seriesDisplayChanged(numberID, checkStatus)
+        Layout.topMargin: 10
+        id: chooserAndConfigCol
+        spacing: 10
+        Layout.fillHeight: true
+        RowLayout  {
+            width: parent.width
+            id: checkBoxColumn
+            spacing: 50
+            height: 0
+            Repeater {
+                model: 4
+                CheckboxButton {
+                    numberID: index
+                    text: "Signal " + index
+                    isChecked: true
+                    onNameChanged: {
+                        seriesNameChanged(numberID, newName)
+                    }
+                    onCheckChanged: {
+                        seriesDisplayChanged(numberID, checkStatus)
+                    }
                 }
             }
         }
-    }
 
-    MultiButton {
-        id: signalSourceButton
-        text: "Source: "
-        items: ["sin", "linear"]
-        currentSelection: 0
-        onSelectionChanged: signalSourceChanged(
-                                selection,
-                                5,
-                                sampleCountButton.items[sampleCountButton.currentSelection]
+        Grid {
+            id: gridButton
+            spacing: 20
+            columns: 3
+            width: parent.width
+            MultiButton {
+                id: signalSourceButton
+                text: "Source: "
+                items: ["sin", "linear"]
+                currentSelection: 0
+                onSelectionChanged: signalSourceChanged(
+                                        selection,
+                                        5,
+                                        sampleCountButton.item[sampleCountButton.currentSelection]
+                                    );
+        }
+
+        MultiButton {
+            id: sampleCountButton
+            text: "Samples: "
+            items: ["6", "128", "1024", "10000"]
+            currentSelection: 2
+            onSelectionChanged: signalSourceChanged(
+                                    signalSourceButton.item[signalSourceButton.currentSelection],
+                                    5,
+                                    selection
                                 );
-    }
-
-    MultiButton {
-        id: sampleCountButton
-        text: "Samples: "
-        items: ["6", "128", "1024", "10000"]
-        currentSelection: 2
-        onSelectionChanged: signalSourceChanged(
-                                signalSourceButton.items[signalSourceButton.currentSelection],
-                                5,
-                                selection
-                                );
-    }
-
-    MultiButton {
-        text: "Refresh Rate: "
-        items: ["1", "24", "60"]
-        currentSelection: 2
-        onSelectionChanged: refreshRateChanged(items[currentSelection]);
-    }
-
-    MultiButton {
-        id: antialiasButton
-        text: "Antialias: "
-        items: ["OFF", "ON"]
-        enabled: true
-        currentSelection: 0
-        onSelectionChanged: antialiasingEnabled(currentSelection == 1);
+        }
+        MultiButton {
+            text: "Refresh Rate: "
+            items: ["1", "24", "60"]
+            currentSelection: 2
+            onSelectionChanged: refreshRateChanged(items[currentSelection]);
+        }
+        MultiButton {
+            id: antialiasButton
+            text: "Antialias: "
+            items: ["OFF", "ON"]
+            enabled: true
+            currentSelection: 0
+            onSelectionChanged: antialiasingEnabled(currentSelection == 1); 
+            }
+        }
     }
 }

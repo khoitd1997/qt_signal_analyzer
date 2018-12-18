@@ -7,5 +7,8 @@
         <file>UIStyle.qml</file>
         <file>qmldir</file>
         <file>CheckboxButton.qml</file>
+        <file>../../../Downloads/mint-icons/Mint-X/actions/22/dialog-ok.png</file>
+        <file>down-arrow.png</file>
+        <file>CollapsibleSection.qml</file>
     </qresource>
 </RCC>

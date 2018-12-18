@@ -45,25 +45,57 @@ ApplicationWindow {
     width: 600
     height: 400
 
-    visible: true
     visibility: Window.Maximized
     flags: Qt.Window | Qt. WindowTitleHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint
     title: "Qt Signal Analyzer"
 
 
-    color: "#212121"
+//    color: "#212121"
+    color:"gray"
     Material.foreground: Material.LightBlue
 
+    CollapsibleSection {
+            id: sectionHeader1
+            onIsClicked: {
+                isOn ? tabUp1.running = true : tabDown1.running = true
+                isOn ? controlPanel.visible = false : controlPanel.visible = true
+                isOn ? scopeView.visible = false : scopeView.visible = true
+            }
+    }
 
+    Rectangle {
+        PropertyAnimation { id: tabDown1;
+                            easing.type: Easing.InQuad	;
+                            target: section1;
+                            property: "height";
+                            from: 0;
+                            to: main.height;
+                            duration: 50 }
+
+        PropertyAnimation { id: tabUp1; 
+                            easing.type: Easing.InQuad;
+                            target: section1;
+                            property: "height";
+                            from: main.height;
+                            to: 0;
+                            duration: 50 }
+
+
+        id: section1
+        width: main.width
+        height: 0
+        anchors.top: sectionHeader1.bottom
+        color: UIStyle.buttonBgUnhovered
 
     ControlPanel {
         id: controlPanel
         anchors.top: parent.top
-        anchors.topMargin: 10
+        visible: false
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.leftMargin: 10
-////![1]
+        width: section1.width / 3
+        height: section1.height
 
         onSignalSourceChanged: {
             if (source == "sin")
@@ -78,14 +110,15 @@ ApplicationWindow {
         onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
     }
 
-//![2]
     ScopeView {
         id: scopeView
+        visible: false
+        width: section1.width - controlPanel.width
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: parent.right
         anchors.left: controlPanel.right
-        height: main.height
+        height: section1.height
 
         onOpenGLSupportedChanged: {
             if (!openGLSupported) {
@@ -94,6 +127,5 @@ ApplicationWindow {
             }
         }
     }
-//![2]
-
+}
 }

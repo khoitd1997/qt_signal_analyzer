@@ -44,7 +44,6 @@ Item {
 
     implicitWidth: comboBox.implicitWidth
     implicitHeight: comboBox.implicitHeight
-
     ComboBox {
         id: comboBox
         font.capitalization: Font.Capitalize
