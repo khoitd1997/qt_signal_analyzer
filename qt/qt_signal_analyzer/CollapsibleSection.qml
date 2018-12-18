@@ -23,6 +23,7 @@ Rectangle {
 
     Label {
         id: sectionText
+        leftPadding: 10
         color: UIStyle.buttonTextColor
         height: Text.paintedHeight
         anchors.top: parent.top

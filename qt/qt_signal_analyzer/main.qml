@@ -56,10 +56,13 @@ ApplicationWindow {
 
     CollapsibleSection {
             id: sectionHeader1
+            width: main.width / 3
             onIsClicked: {
-                isOn ? tabUp1.running = true : tabDown1.running = true
-                isOn ? controlPanel.visible = false : controlPanel.visible = true
-                isOn ? scopeView.visible = false : scopeView.visible = true
+//                isOn ? tabUp1.running = true : tabDown1.running = true
+//                isOn ? controlPanel.visible = false : controlPanel.visible = true
+//                isOn ? scopeView.visible = false : scopeView.visible = true
+                isOn ? section1.visible = false : section1.visible = true
+
             }
     }
 
@@ -82,19 +85,20 @@ ApplicationWindow {
 
 
         id: section1
-        width: main.width
-        height: 0
+        width: sectionHeader1.width
+        height: main.height - sectionHeader1.height
+        visible: false
         anchors.top: sectionHeader1.bottom
         color: UIStyle.buttonBgUnhovered
 
     ControlPanel {
         id: controlPanel
+        topPadding: 5
         anchors.top: parent.top
-        visible: false
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.leftMargin: 10
-        width: section1.width / 3
+        width: section1.width
         height: section1.height
 
         onSignalSourceChanged: {
@@ -110,15 +114,15 @@ ApplicationWindow {
         onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
     }
 
+}
     ScopeView {
         id: scopeView
-        visible: false
         width: section1.width - controlPanel.width
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        anchors.left: controlPanel.right
-        height: section1.height
+        anchors.left: section1.right
+        height: parent.height
 
         onOpenGLSupportedChanged: {
             if (!openGLSupported) {
@@ -127,5 +131,4 @@ ApplicationWindow {
             }
         }
     }
-}
 }

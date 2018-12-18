@@ -34,9 +34,9 @@ import QtQuick 2.12
 import QtQuick.Controls.Material 2.4
 import "."
 
-ColumnLayout {
+Column {
     id: colLayout
-    spacing: 20
+    spacing: 5
     Layout.fillHeight: true
     height: parent.height
 
@@ -53,16 +53,12 @@ ColumnLayout {
     ButtonGroup {
         buttons: checkBoxColumn.children
     }
-    ColumnLayout {
+
         Layout.topMargin: 10
-        id: chooserAndConfigCol
-        spacing: 10
-        Layout.fillHeight: true
-        RowLayout  {
+        Row  {
             width: parent.width
             id: checkBoxColumn
-            spacing: 50
-            height: 0
+            spacing: 20
             Repeater {
                 model: 4
                 CheckboxButton {
@@ -122,5 +118,4 @@ ColumnLayout {
             onSelectionChanged: antialiasingEnabled(currentSelection == 1); 
             }
         }
-    }
 }
