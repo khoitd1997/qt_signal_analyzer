@@ -38,7 +38,7 @@ Column {
     id: colLayout
     spacing: 5
     Layout.fillHeight: true
-    height: parent.height
+    height: (checkBoxColumn.height + gridButton.height) * 1.1
 
     property alias antialiasButton: antialiasButton
     signal animationsEnabled(bool enabled)

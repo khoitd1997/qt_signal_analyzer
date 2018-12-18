@@ -9,8 +9,9 @@ Rectangle {
     width: parent.width
     property bool isTicked: false
     signal isClicked(bool isOn)
-
-    color: UIStyle.buttonBgUnhovered
+    radius: 4
+    color: "#3A3A3A"
+    border.color: isTicked ? "#56825D" : "transparent"
 
     MouseArea {
         anchors.fill: parent;
@@ -24,13 +25,15 @@ Rectangle {
     Label {
         id: sectionText
         leftPadding: 10
-        color: UIStyle.buttonTextColor
+        font.pointSize: 15
+        color: "#86CB92"
         height: Text.paintedHeight
         anchors.top: parent.top
         anchors.left: parent.left
         text: "Section Header"
         background: Rectangle {
             color: "transparent"
+
             anchors.fill: parent
         }
     }

@@ -50,46 +50,43 @@ ApplicationWindow {
     title: "Qt Signal Analyzer"
 
 
-//    color: "#212121"
-    color:"gray"
+    color: "#272727"
     Material.foreground: Material.LightBlue
 
     CollapsibleSection {
             id: sectionHeader1
             width: main.width / 3
             onIsClicked: {
-//                isOn ? tabUp1.running = true : tabDown1.running = true
-//                isOn ? controlPanel.visible = false : controlPanel.visible = true
-//                isOn ? scopeView.visible = false : scopeView.visible = true
-                isOn ? section1.visible = false : section1.visible = true
+                isOn ? tabUp1.running = true : tabDown1.running = true
+//                isOn ? section1.visible = false : section1.visible = true
 
             }
     }
 
     Rectangle {
         PropertyAnimation { id: tabDown1;
-                            easing.type: Easing.InQuad	;
+                            easing.type: Easing.Linear	;
                             target: section1;
-                            property: "height";
-                            from: 0;
-                            to: main.height;
-                            duration: 50 }
+                            property: "visible";
+                            from: false;
+                            to: true;
+                            duration: 150 }
 
-        PropertyAnimation { id: tabUp1; 
-                            easing.type: Easing.InQuad;
+        PropertyAnimation { id: tabUp1;
+                            easing.type: Easing.Linear;
                             target: section1;
-                            property: "height";
-                            from: main.height;
-                            to: 0;
-                            duration: 50 }
+                            property: "visible";
+                            from: true;
+                            to: false;
+                            duration: 150 }
 
 
         id: section1
         width: sectionHeader1.width
-        height: main.height - sectionHeader1.height
+        height: controlPanel.height
         visible: false
         anchors.top: sectionHeader1.bottom
-        color: UIStyle.buttonBgUnhovered
+        color: "#3A3A3A"
 
     ControlPanel {
         id: controlPanel
@@ -99,7 +96,6 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.leftMargin: 10
         width: section1.width
-        height: section1.height
 
         onSignalSourceChanged: {
             if (source == "sin")
@@ -119,10 +115,9 @@ ApplicationWindow {
         id: scopeView
         width: section1.width - controlPanel.width
         anchors.top: parent.top
-        anchors.bottom: parent.bottom
         anchors.right: parent.right
         anchors.left: section1.right
-        height: parent.height
+        height: parent.height * 0.8
 
         onOpenGLSupportedChanged: {
             if (!openGLSupported) {
