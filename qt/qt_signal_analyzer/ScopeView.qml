@@ -30,7 +30,6 @@
 import QtQuick 2.0
 import QtCharts 2.1
 
-//![1]
 ChartView {
     id: chartView
     animationOptions: ChartView.NoAnimation
@@ -44,19 +43,22 @@ ChartView {
         }
     }
     Component.onCompleted: {
-        if (!series("Signal 1").useOpenGL) {
+        if (!series("Signal 0").useOpenGL) {
             openGLSupported = false
             openGL = false
         }
     }
 
+    ValueAxis {
+        id: timeAxis
+        min: 400
+        max: 4000
+    }
+
     LineSeries {
         id: lineSeries0
         name: "Signal 0"
-        axisX: ValueAxis {
-            min: 0
-            max: 1024
-        }
+        axisX: timeAxis
         axisY: ValueAxis {
             min: 0
             max: 5
@@ -68,10 +70,7 @@ ChartView {
         id: lineSeries1
         visible: true
         name: "Signal 1"
-        axisX: ValueAxis {
-            min: 0
-            max: 1024
-        }
+        axisX: timeAxis
 
         axisYRight: ValueAxis {
             min: 0
@@ -83,10 +82,7 @@ ChartView {
     LineSeries {
         id: lineSeries2
         name: "Signal 2"
-        axisX: ValueAxis {
-            min: 0
-            max: 1024
-        }
+        axisX: timeAxis
         axisY: ValueAxis {
             min: 0
             max: 1024
@@ -98,29 +94,33 @@ ChartView {
         id: lineSeries3
         visible: true
         name: "Signal 3"
-        axisX: ValueAxis {
-            min: 0
-            max: 1024
-        }
+        axisX: timeAxis
         axisYRight: ValueAxis {
             min: 0
             max: 1024
         }
         useOpenGL: chartView.openGL
     }
-//![1]
 
-    //![2]
     Timer {
         id: refreshTimer
-        interval: 1 / 60 * 1000 // 60 Hz
+        interval: 300
         running: true
         repeat: true
         onTriggered: {
-            dataSource.update(chartView.series(0));
-            dataSource.update(chartView.series(1));
-            dataSource.update(chartView.series(2));
-            dataSource.update(chartView.series(3));
+            chartView.updateGraph(0);
+            chartView.updateGraph(1);
+            chartView.updateGraph(2);
+            chartView.updateGraph(3);
+        }
+    }
+
+
+    function updateGraph(id){
+        if (chartView.series(id).visible) {
+            dataSource.update(chartView.series(id));
+            timeAxis.min += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - timeAxis.max;
+            timeAxis.max += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - timeAxis.max;
         }
     }
 
@@ -132,33 +132,22 @@ ChartView {
         chartView.series(id).visible = isOn
     }
 
+    function changeAxis(id, axisName, newRange){
+        if (axisName === "x") {
+            timeAxis.max += (newRange - 
+                            (chartView.series(id).axisX.max - chartView.series(id).axisX.min))/2
+            
+            timeAxis.min -= (newRange - 
+                            (chartView.series(id).axisX.max - chartView.series(id).axisX.min))/2
 
-    function changeSeriesType(type) {
-        chartView.removeAllSeries();
-
-        // Create two new series of the correct type. Axis x is the same for both of the series,
-        // but the series have their own y-axes to make it possible to control the y-offset
-        // of the "signal sources".
-        if (type === "line") {
-            var series1 = chartView.createSeries(ChartView.SeriesTypeLine, "signal 1",
-                                                 axisX, axisY1);
-            series1.useOpenGL = chartView.openGL
-
-            var series2 = chartView.createSeries(ChartView.SeriesTypeLine, "signal 2",
-                                                 axisX, axisY2);
-            series2.useOpenGL = chartView.openGL
-        } else {
-            var series3 = chartView.createSeries(ChartView.SeriesTypeScatter, "signal 1",
-                                                 axisX, axisY1);
-            series3.markerSize = 2;
-            series3.borderColor = "transparent";
-            series3.useOpenGL = chartView.openGL
-
-            var series4 = chartView.createSeries(ChartView.SeriesTypeScatter, "signal 2",
-                                                 axisX, axisY2);
-            series4.markerSize = 2;
-            series4.borderColor = "transparent";
-            series4.useOpenGL = chartView.openGL
+        } else if(axisName === "y") {
+            chartView.series(id).axisY.max += (newRange 
+                                              - (chartView.series(id).axisY.max 
+                                              - chartView.series(id).axisY.min))/2
+            
+            chartView.series(id).axisY.min -= (newRange 
+                                              - (chartView.series(id).axisY.max 
+                                              - chartView.series(id).axisY.min))/2
         }
     }
 

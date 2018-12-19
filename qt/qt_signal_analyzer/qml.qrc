@@ -10,5 +10,6 @@
         <file>../../../Downloads/mint-icons/Mint-X/actions/22/dialog-ok.png</file>
         <file>down-arrow.png</file>
         <file>CollapsibleSection.qml</file>
+        <file>SliderWithText.qml</file>
     </qresource>
 </RCC>

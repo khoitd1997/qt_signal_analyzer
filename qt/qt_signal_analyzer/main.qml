@@ -62,13 +62,7 @@ ApplicationWindow {
         anchors.leftMargin: 10
         width: parent.width / 3
 
-//        onSignalSourceChanged: {
-//            if (source == "sin")
-//                dataSource.generateData(0, signalCount, sampleCount);
-//            else
-//                dataSource.generateData(1, signalCount, sampleCount);
-//            scopeView.axisX().max = sampleCount;
-//        }
+        onAxisChanged: scopeView.changeAxis(id, axisName, newRange)
         onRefreshRateChanged: scopeView.changeRefreshRate(rate);
         onAntialiasingEnabled: scopeView.antialiasing = enabled;
         onSeriesNameChanged: scopeView.changeSeriesName(id, newName);

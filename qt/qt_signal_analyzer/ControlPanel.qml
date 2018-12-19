@@ -37,7 +37,7 @@ import "."
 Item {
     id: colLayout
     Layout.fillHeight: true
-    height:  checkBoxColumn.height
+    height:  section1.height
     width: parent.width
 
 //    property alias antialiasButton: antialiasButton
@@ -48,6 +48,7 @@ Item {
     // graph chooser section
     signal seriesNameChanged(int id, string newName)
     signal seriesDisplayChanged(int id, bool isOn)
+    signal axisChanged(int id, string axisName, real newRange)
 
 //    ButtonGroup {
 //        buttons: checkBoxColumn.children
@@ -55,7 +56,7 @@ Item {
     CollapsibleSection {
             id: sectionHeader1
             width: parent.width
-            displayText: "Signal Select"
+            displayText: "Graph Settings"
             anchors.top: parent.top
             onIsClicked: {
                 isOn ? tabUp1.running = true : tabDown1.running = true
@@ -69,18 +70,19 @@ Item {
                             target: section1;
                             property: "height";
                             from: 0;
-                            to: checkBoxColumn.height + currentSignalButton.height + 10;
+                            to: section1.childrenRect.height + 10;
                             duration: 150 }
 
         PropertyAnimation { id: tabUp1;
                             easing.type: Easing.Linear;
                             target: section1;
                             property: "height";
-                            from: checkBoxColumn.height + currentSignalButton.height + 10;
+                            from: section1.childrenRect.height + 10;
                             to: 0;
                             duration: 150 }
         id: section1
         width: sectionHeader1.width
+        height: 0
         visible: false
         anchors.top: sectionHeader1.bottom
         color: "#3A3A3A"
@@ -89,6 +91,7 @@ Item {
         Row  {
             width: parent.width
             id: checkBoxColumn
+
             spacing: parent.width / 12
             topPadding: 10
             Repeater {
@@ -110,15 +113,45 @@ Item {
             }
         }
 
-        MultiButton {
-                anchors.top: checkBoxColumn.bottom
-                anchors.topMargin: 5
-                anchors.horizontalCenter: checkBoxColumn.horizontalCenter
-                id: currentSignalButton
-                text: "Current Signal: "
-                items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
-                currentSelection: 0
-//                onSelectionChanged:
+        Rectangle {
+            anchors.top: checkBoxColumn.bottom
+            anchors.topMargin: 10
+            radius: 4
+            width: childrenRect.width
+            height: childrenRect.height
+            color: "transparent"
+
+            MultiButton {
+                    anchors.top: parent.top
+                    id: currentSignalButton
+                    text: "Selected Signal: "
+                    items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
+                    currentSelection: 0
+            }
+
+            SliderWithText {
+                id: xSlider
+                sliderFrom: 1
+                sliderTo: 50000
+                sliderDefaultVal: 25000
+                sliderText: "Change Time Scaling:"
+                width: section1.width
+                onSliderMoved: {
+                        axisChanged(currentSignalButton.currentSelection, "x", newRange)
+                }
+            }
+        
+            SliderWithText {
+                anchors.top: xSlider.bottom
+                sliderText: "Change Voltage Scaling:"
+                sliderFrom: 1
+                sliderTo: 5
+                sliderDefaultVal: 4
+                width: section1.width
+                onSliderMoved: {
+                        axisChanged(currentSignalButton.currentSelection, "y", newRange)
+                }
+            }
         }
     }
 
@@ -167,12 +200,14 @@ Item {
                                     selection
                                 );
         }
+        
         MultiButton {
             text: "Refresh Rate: "
             items: ["1", "24", "60"]
             currentSelection: 2
             onSelectionChanged: refreshRateChanged(items[currentSelection]);
         }
+
         MultiButton {
             id: antialiasButton
             text: "Antialias: "
@@ -182,5 +217,5 @@ Item {
             onSelectionChanged: antialiasingEnabled(currentSelection == 1);
             }
         }
-}
+    }
 }

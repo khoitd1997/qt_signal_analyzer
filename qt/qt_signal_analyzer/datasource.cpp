@@ -38,59 +38,52 @@
 
 QT_CHARTS_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QAbstractSeries *)
-Q_DECLARE_METATYPE(QAbstractAxis *)
+Q_DECLARE_METATYPE(QAbstractSeries*)
+Q_DECLARE_METATYPE(QAbstractAxis*)
+static const int maxPoints = 30000;
+static const double storageThreshold = 0.8;
 
-DataSource::DataSource(QQmlApplicationEngine *appEngine, QObject *parent)
-    : QObject(parent), m_appEngine(appEngine), m_index(-1) {
-  qRegisterMetaType<QAbstractSeries *>();
-  qRegisterMetaType<QAbstractAxis *>();
+DataSource::DataSource(QQmlApplicationEngine* appEngine, QObject* parent)
+  : QObject(parent)
+  , m_appEngine(appEngine)
+{
+  qRegisterMetaType<QAbstractSeries*>();
+  qRegisterMetaType<QAbstractAxis*>();
 
-  generateData(0, 5, 1024);
+  m_data.reserve(maxPoints);
+  generateData();
 }
 
-void DataSource::update(QAbstractSeries *series) {
+void
+DataSource::update(QAbstractSeries* series)
+{
+  this->generateData();
   if (series) {
-    QXYSeries *xySeries = static_cast<QXYSeries *>(series);
-    m_index++;
-    if (m_index > m_data.count() - 1)
-      m_index = 0;
-
-    QVector<QPointF> points = m_data.at(m_index);
+    QXYSeries* xySeries = static_cast<QXYSeries*>(series);
     // Use replace instead of clear + append, it's optimized for performance
-    xySeries->replace(points);
+    xySeries->replace(m_data);
+    //    qDebug() << "Series Updated " << m_data[0].x() << m_data[0].y() <<
+    //    endl;
   }
 }
 
-void DataSource::generateData(int type, int rowCount, int colCount) {
-  // Remove previous data
-  m_data.clear();
-
-  // Append the new data depending on the type
-  for (int i(0); i < rowCount; i++) {
-    QVector<QPointF> points;
-    points.reserve(colCount);
-    for (int j(0); j < colCount; j++) {
-      qreal x(0);
-      qreal y(0);
-      switch (type) {
-      case 0:
-        // data with sin + random component
-        y = qSin(M_PI / 50 * j) + 0.5 +
-            QRandomGenerator::global()->generateDouble();
-        x = j;
-        break;
-      case 1:
-        // linear data
-        x = j;
-        y = (qreal)i / 10;
-        break;
-      default:
-        // unknown, do nothing
-        break;
-      }
-      points.append(QPointF(x, y));
-    }
-    m_data.append(points);
+void
+DataSource::generateData(void)
+{
+  static unsigned long currLimit = 0;
+  if (m_data.size() > storageThreshold * maxPoints) {
+    qDebug() << "Free elements" << endl;
+    m_data.erase(m_data.begin(), m_data.begin() + m_data.size() / 2);
   }
+
+  for (auto j(currLimit); j < currLimit + 1024; j++) {
+    qreal x(0);
+    qreal y(0);
+    y =
+      qSin(M_PI / 50 * j) + 0.5 + QRandomGenerator::global()->generateDouble();
+    x = j;
+    m_data.append(QPointF(x, y));
+    //    qDebug() << "Generating x: " << x << endl;
+  }
+  currLimit += 1024;
 }

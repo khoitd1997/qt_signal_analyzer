@@ -40,21 +40,21 @@ QT_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
-class DataSource : public QObject {
+class DataSource : public QObject
+{
   Q_OBJECT
 public:
-  explicit DataSource(QQmlApplicationEngine *appEngine, QObject *parent = 0);
+  explicit DataSource(QQmlApplicationEngine* appEngine, QObject* parent = 0);
 
 Q_SIGNALS:
 
 public slots:
-  void generateData(int type, int rowCount, int colCount);
-  void update(QAbstractSeries *series);
+  void generateData(void);
+  void update(QAbstractSeries* series);
 
 private:
-  QQmlApplicationEngine *m_appEngine;
-  QList<QVector<QPointF>> m_data;
-  int m_index;
+  QQmlApplicationEngine* m_appEngine;
+  QList<QPointF> m_data;
 };
 
 #endif // DATASOURCE_H
