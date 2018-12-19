@@ -43,7 +43,6 @@ Item {
 //    property alias antialiasButton: antialiasButton
     signal animationsEnabled(bool enabled)
     signal refreshRateChanged(variant rate);
-    signal signalSourceChanged(string source, int signalCount, int sampleCount);
     signal antialiasingEnabled(bool enabled)
 
     // graph chooser section
@@ -100,6 +99,9 @@ Item {
                     isChecked: true
                     onNameChanged: {
                         seriesNameChanged(numberID, newName)
+                        var newItems = currentSignalButton.items
+                        newItems[numberID] = newName
+                        currentSignalButton.items = newItems
                     }
                     onCheckChanged: {
                         seriesDisplayChanged(numberID, checkStatus)
@@ -114,7 +116,7 @@ Item {
                 anchors.horizontalCenter: checkBoxColumn.horizontalCenter
                 id: currentSignalButton
                 text: "Current Signal: "
-                items: ["Signal 1", "Signal 2", "Signal 3", "Signal 4"]
+                items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
                 currentSelection: 0
 //                onSelectionChanged:
         }
@@ -154,18 +156,6 @@ Item {
         color: "#3A3A3A"
 
         Grid {
-        MultiButton {
-                id: signalSourceButton
-                text: "Source: "
-                items: ["sin", "linear"]
-                currentSelection: 0
-                onSelectionChanged: signalSourceChanged(
-                                        selection,
-                                        5,
-                                        sampleCountButton.item[sampleCountButton.currentSelection]
-                                    );
-        }
-
         MultiButton {
             id: sampleCountButton
             text: "Samples: "

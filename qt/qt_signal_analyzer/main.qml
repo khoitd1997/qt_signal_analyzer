@@ -53,42 +53,6 @@ ApplicationWindow {
     color: "#272727"
     Material.foreground: Material.LightBlue
 
-//    CollapsibleSection {
-//            id: sectionHeader1
-//            width: parent.width / 3
-//            displayText: "Signal Display Settings"
-//            onIsClicked: {
-//                isOn ? tabUp1.running = true : tabDown1.running = true
-////                isOn ? section1.visible = false : section1.visible = true
-
-//            }
-//    }
-
-//    Rectangle {
-//        PropertyAnimation { id: tabDown1;
-//                            easing.type: Easing.Linear	;
-//                            target: section1;
-//                            property: "visible";
-//                            from: false;
-//                            to: true;
-//                            duration: 150 }
-
-//        PropertyAnimation { id: tabUp1;
-//                            easing.type: Easing.Linear;
-//                            target: section1;
-//                            property: "visible";
-//                            from: true;
-//                            to: false;
-//                            duration: 150 }
-
-
-//        id: section1
-//        width: parent.width / 3
-//        height: controlPanel.height
-//        visible: false
-//        anchors.top: parent.top
-//        color: "#3A3A3A"
-
     ControlPanel {
         id: controlPanel
         anchors.topMargin: 10
@@ -98,13 +62,13 @@ ApplicationWindow {
         anchors.leftMargin: 10
         width: parent.width / 3
 
-        onSignalSourceChanged: {
-            if (source == "sin")
-                dataSource.generateData(0, signalCount, sampleCount);
-            else
-                dataSource.generateData(1, signalCount, sampleCount);
-            scopeView.axisX().max = sampleCount;
-        }
+//        onSignalSourceChanged: {
+//            if (source == "sin")
+//                dataSource.generateData(0, signalCount, sampleCount);
+//            else
+//                dataSource.generateData(1, signalCount, sampleCount);
+//            scopeView.axisX().max = sampleCount;
+//        }
         onRefreshRateChanged: scopeView.changeRefreshRate(rate);
         onAntialiasingEnabled: scopeView.antialiasing = enabled;
         onSeriesNameChanged: scopeView.changeSeriesName(id, newName);
