@@ -2,6 +2,14 @@
 
 Device Firmware and Qt front-end code for a basic signal analyzer
 
+## Credits
+
+Attributes for work that I borrowed:
+
+- Down Arrow: Icon made by [Lucy G](https://www.flaticon.com/authors/lucy-g) from www.flaticon.com
+- Oscilloscope: Icon made by [Freepik](https://www.flaticon.com/authors/freepik) from www.flaticon.com
+- Microchip and Analytics: Icon made by [Pixel perfect](https://www.flaticon.com/authors/pixel-perfect) from www.flaticon.com
+
 ## Features
 
 - Display multiple waveform inputs received from device
