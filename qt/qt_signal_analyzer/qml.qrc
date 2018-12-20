@@ -14,5 +14,6 @@
         <file>ScopeSetting.qml</file>
         <file>MainMenuBar.qml</file>
         <file>MainMenuObject.qml</file>
+        <file>BottomBar.qml</file>
     </qresource>
 </RCC>

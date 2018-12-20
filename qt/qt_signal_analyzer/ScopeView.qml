@@ -131,12 +131,10 @@ ChartView {
 
     Timer {
         id: refreshTimer
-        interval: 4000
+        interval: 300
         running: true
         repeat: true
         onTriggered: {
-
-
             chartView.updateGraph(0);
             chartView.updateGraph(1);
             chartView.updateGraph(2);

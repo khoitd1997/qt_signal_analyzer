@@ -29,11 +29,11 @@
 
 import QtQuick 2.0
 import QtQuick.Window 2.0
-import QtQuick.Controls 1.1
 import QtQuick 2.12
 import QtQuick.Controls.Material 2.4
 import QtQuick.Controls 2.4
 import QtQuick.Dialogs 1.3
+//import QtQuick.Controls 1.4
 
 
 //![1]
@@ -56,7 +56,10 @@ ApplicationWindow {
     Material.foreground: Material.LightBlue
 
     menuBar: MainMenuBar {
-        onGraphImageRequested: scopeView.saveGraphImage(graphImageUrl)
+        onGraphImageRequested: {
+            scopeView.saveGraphImage(graphImageUrl)
+            bottomBar.actionStatus = "Graph Saved at " + graphImageUrl
+        }
     }
 
     ControlPanel {
@@ -90,5 +93,9 @@ ApplicationWindow {
                 controlPanel.openGLButton.currentSelection = 0
             }
         }
+    }
+
+    BottomBar {
+        id: bottomBar
     }
 }
