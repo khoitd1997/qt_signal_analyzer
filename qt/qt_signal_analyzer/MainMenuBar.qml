@@ -9,7 +9,6 @@ MenuBar {
     id: menuBar
 
     height: 25
-
     FileDialog {
         visible: false
         id: graphSaveDialog

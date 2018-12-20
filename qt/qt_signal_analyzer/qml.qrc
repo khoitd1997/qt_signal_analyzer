@@ -15,5 +15,9 @@
         <file>MainMenuBar.qml</file>
         <file>MainMenuObject.qml</file>
         <file>BottomBar.qml</file>
+        <file>live-icon.png</file>
+        <file>SideBar.qml</file>
+        <file>analytics.png</file>
+        <file>microchip.png</file>
     </qresource>
 </RCC>

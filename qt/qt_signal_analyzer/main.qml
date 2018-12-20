@@ -33,10 +33,7 @@ import QtQuick 2.12
 import QtQuick.Controls.Material 2.4
 import QtQuick.Controls 2.4
 import QtQuick.Dialogs 1.3
-//import QtQuick.Controls 1.4
 
-
-//![1]
 ApplicationWindow {
     Material.theme: Material.Dark
     Material.accent: Material.Teal
@@ -56,19 +53,28 @@ ApplicationWindow {
     Material.foreground: Material.LightBlue
 
     menuBar: MainMenuBar {
+        leftPadding: sideBar.width
         onGraphImageRequested: {
             scopeView.saveGraphImage(graphImageUrl)
             bottomBar.actionStatus = "Graph Saved at " + graphImageUrl
         }
     }
 
+    SideBar {
+        id: sideBar
+        y: main.menuBar.height
+        width: 60
+        height: main.height
+    }
+
     ControlPanel {
         id: controlPanel
-        anchors.topMargin: 10
+        anchors.topMargin: 2
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        anchors.leftMargin: 10
+        anchors.leftMargin: sideBar.width + 2
+//        anchors.leftMargin: 10
         width: parent.width / 3
 
         onAxisOffsetChanged: scopeView.changeAxisOffset(id, axisName, newOffset)
@@ -82,7 +88,9 @@ ApplicationWindow {
     ScopeView {
         id: scopeView
         width: parent.width - controlPanel.width
-        anchors.top: parent.top
+        anchors.top: menuBar.bottom
+        anchors.topMargin: -7
+
         anchors.right: parent.right
         anchors.left: controlPanel.right
         height: parent.height * 0.8
