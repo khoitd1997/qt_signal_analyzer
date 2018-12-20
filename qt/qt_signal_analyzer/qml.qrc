@@ -12,5 +12,7 @@
         <file>CollapsibleSection.qml</file>
         <file>SliderWithText.qml</file>
         <file>ScopeSetting.qml</file>
+        <file>MainMenuBar.qml</file>
+        <file>MainMenuObject.qml</file>
     </qresource>
 </RCC>

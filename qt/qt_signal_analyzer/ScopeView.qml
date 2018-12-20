@@ -144,6 +144,13 @@ ChartView {
         }
     }
 
+    function saveGraphImage(graphImageUrl) {
+        // need to strip due to Qt bugs
+        chartView.grabToImage(function(result) {
+                        var urlStripped = (graphImageUrl+"").replace('file://', '');
+                        result.saveToFile(urlStripped);
+                              });
+    }
 
     function updateGraph(id){
         if (chartView.series(id).visible) {
