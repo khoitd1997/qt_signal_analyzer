@@ -65,45 +65,30 @@ ApplicationWindow {
         y: main.menuBar.height
         width: 60
         height: main.height
-    }
-
-    ControlPanel {
-        id: controlPanel
-        anchors.topMargin: 2
-        anchors.top: parent.top
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.leftMargin: sideBar.width + 2
-//        anchors.leftMargin: 10
-        width: parent.width / 3
-
-        onAxisOffsetChanged: scopeView.changeAxisOffset(id, axisName, newOffset)
-        onAxisRangeChanged: scopeView.changeAxisRange(id, axisName, newRange)
-        onRefreshRateChanged: scopeView.changeRefreshRate(rate);
-        onAntialiasingEnabled: scopeView.antialiasing = enabled;
-        onSeriesNameChanged: scopeView.changeSeriesName(id, newName);
-        onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
-    }
-
-    ScopeView {
-        id: scopeView
-        width: parent.width - controlPanel.width
-        anchors.top: menuBar.bottom
-        anchors.topMargin: -7
-
-        anchors.right: parent.right
-        anchors.left: controlPanel.right
-        height: parent.height * 0.8
-
-        onOpenGLSupportedChanged: {
-            if (!openGLSupported) {
-                controlPanel.openGLButton.enabled = false
-                controlPanel.openGLButton.currentSelection = 0
-            }
+        onTabChanged: {
+            changeTab(newTabIndex)
         }
+    }
+
+    LiveTab {
+            id: liveTab
+            width: parent.width
+            height: parent.height
+            anchors.top: menuBar.bottom
+            anchors.right: parent.right
+            anchors.leftMargin: sideBar.width + 2
+            anchors.left: parent.left
     }
 
     BottomBar {
         id: bottomBar
+    }
+
+    function changeTab(newTabIndex) {
+        if(newTabIndex === 0) {
+            liveTab.visible = false
+        } else if (newTabIndex === 1) {
+            liveTab.visible = true
+        }
     }
 }

@@ -19,5 +19,6 @@
         <file>SideBar.qml</file>
         <file>analytics.png</file>
         <file>microchip.png</file>
+        <file>LiveTab.qml</file>
     </qresource>
 </RCC>

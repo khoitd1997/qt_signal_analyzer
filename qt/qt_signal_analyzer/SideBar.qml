@@ -10,7 +10,7 @@ Drawer {
     position: 0
     visible: true
 
-    signal tabChanged(int newTab)
+    signal tabChanged(int newTabIndex)
 
     Rectangle {
         color:"#181818"
@@ -45,7 +45,6 @@ Drawer {
                             onClicked: {
                                 tabChanged(index)
                                 changeCurrTab(index)
-                                console.log("Icon Clicked")
                             }
                         }
                     }
