@@ -56,17 +56,17 @@ ChartView {
 
     ValueAxis {
         titleText: "Time"
-        id: timeAxis
+        id: xAxis
         min: 400
         max: 4000
     }
 
     LineSeries {
         id: lineSeries0
-        visible: true
+        visible: false
         name: "Signal 0"
         color: ScopeSetting.signalColorList[0]
-        axisX: timeAxis
+        axisX: xAxis
         axisY: ValueAxis {
             tickCount: 8
             visible: lineSeries0.visible
@@ -80,10 +80,10 @@ ChartView {
 
     LineSeries {
         id: lineSeries1
-        visible: true
+        visible: false
         name: "Signal 1"
         color: ScopeSetting.signalColorList[1]
-        axisX: timeAxis
+        axisX: xAxis
         axisYRight: ValueAxis {
             tickCount: 8
             visible: lineSeries1.visible
@@ -97,9 +97,9 @@ ChartView {
 
     LineSeries {
         id: lineSeries2
-        visible: true
+        visible: false
         name: "Signal 2"
-        axisX: timeAxis
+        axisX: xAxis
         color: ScopeSetting.signalColorList[2]
         axisY: ValueAxis {
             tickCount: 8
@@ -114,9 +114,9 @@ ChartView {
 
     LineSeries {
         id: lineSeries3
-        visible: true
+        visible: false
         name: "Signal 3"
-        axisX: timeAxis
+        axisX: xAxis
         color: ScopeSetting.signalColorList[3]
         axisYRight: ValueAxis {
             tickCount: 8
@@ -131,10 +131,12 @@ ChartView {
 
     Timer {
         id: refreshTimer
-        interval: 300
+        interval: 4000
         running: true
         repeat: true
         onTriggered: {
+
+
             chartView.updateGraph(0);
             chartView.updateGraph(1);
             chartView.updateGraph(2);
@@ -146,8 +148,8 @@ ChartView {
     function updateGraph(id){
         if (chartView.series(id).visible) {
             dataSource.update(chartView.series(id));
-            timeAxis.min += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - timeAxis.max;
-            timeAxis.max += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - timeAxis.max;
+            xAxis.min += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - xAxis.max;
+            xAxis.max += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - xAxis.max;
         }
     }
 
@@ -161,8 +163,8 @@ ChartView {
 
     function changeAxisOffset(id, axisName, newOffset){
         if (axisName === "x") {
-            timeAxis.min += (newOffset-oldXOffset)
-            timeAxis.max += (newOffset-oldXOffset)
+            xAxis.min += (newOffset-oldXOffset)
+            xAxis.max += (newOffset-oldXOffset)
             oldXOffset = newOffset
         } else if(axisName === "y") {
             if(id%2 !=0){
@@ -178,10 +180,10 @@ ChartView {
 
     function changeAxisRange(id, axisName, newRange){
         if (axisName === "x") {
-            timeAxis.max += (newRange -
+            xAxis.max += (newRange -
                             (chartView.series(id).axisX.max - chartView.series(id).axisX.min))/2
 
-            timeAxis.min -= (newRange -
+            xAxis.min -= (newRange -
                             (chartView.series(id).axisX.max - chartView.series(id).axisX.min))/2
 
         } else if(axisName === "y") {

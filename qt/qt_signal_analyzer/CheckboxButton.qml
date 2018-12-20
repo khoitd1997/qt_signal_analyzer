@@ -5,7 +5,7 @@ import "."
 Item {
     id: control
     property string text: "Checkbox: "
-    property bool isChecked: false
+    property bool isChecked: checkBox.checked
     property int numberID: 0
 
     property color buttonTextColor: UIStyle.buttonTextColor
@@ -22,6 +22,7 @@ Item {
         implicitHeight: 60
         id: checkBox
         text: control.text
+        checked: false
 
         indicator: Rectangle {
             implicitWidth: 20
@@ -77,7 +78,6 @@ Item {
             }
         }
 
-        checked: isChecked
         onClicked: {
             checkChanged(checked)
         }

@@ -99,7 +99,6 @@ Item {
                     text: "Signal " + index
                     buttonTextColor: modelData
                     buttonBorderColor: ScopeSetting.signalBorderColorList[index]
-                    isChecked: true
                     onNameChanged: {
                         seriesNameChanged(numberID, newName)
                         var newItems = currentSignalButton.items
