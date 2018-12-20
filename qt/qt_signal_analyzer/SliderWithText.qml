@@ -2,10 +2,13 @@ import QtQuick 2.12
 import QtQuick.Controls 2.5
 
 Rectangle {
+    id: control
     property string sliderText: "Default Slider Text"
     property real sliderFrom: 0
     property real sliderTo: 100
     property real sliderDefaultVal: 25
+
+    property color sliderTextColor: "#7E7F7B"
 
     signal sliderMoved(real newRange)
 
@@ -18,7 +21,7 @@ Rectangle {
         id: timeScaleText
         font.bold: true
         font.pointSize: 13
-        color: UIStyle.buttonTextColor
+        color: control.sliderTextColor
         text: sliderText
     }
 
@@ -43,7 +46,7 @@ Rectangle {
             Rectangle {
                 width: timeScaleSlider.visualPosition * parent.width
                 height: parent.height
-                color: "#21be2b"
+                color: "#BB63BF"
                 radius: 2
             }
         }

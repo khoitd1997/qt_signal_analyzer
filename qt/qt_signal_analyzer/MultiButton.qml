@@ -39,6 +39,10 @@ Item {
     property string text: "Option: "
     property variant items: ["first"]
     property int currentSelection: 0
+
+    property color buttonTextColor: UIStyle.buttonTextColor
+    property color buttonBorderColor: UIStyle.buttonBorderColor
+
     signal selectionChanged(variant selection)
     signal clicked
 
@@ -58,13 +62,13 @@ Item {
                 width: comboBox.width
                 contentItem: Text {
                     text: modelData
-                    color: UIStyle.buttonTextColor
+                    color: button.buttonTextColor
                     font: comboBox.font
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
                 }
                 highlighted: comboBox.highlightedIndex === index
-            }
+        }
 
         contentItem: Label {
             id: comboText
@@ -72,7 +76,7 @@ Item {
             rightPadding: comboBox.spacing
             text: button.text + comboBox.displayText
             font: comboBox.font
-            color: UIStyle.buttonTextColor
+            color: button.buttonTextColor
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
         }
@@ -81,7 +85,7 @@ Item {
             radius: 4
             implicitWidth: 40
             implicitHeight: 40
-            border.color:  UIStyle.buttonBorderColor
+            border.color:  button.buttonBorderColor
             border.width: comboBox.visualFocus ? 2 : 1
             color: comboBox.hovered ? UIStyle.buttonBgHovered : UIStyle.buttonBgUnhovered
         }
