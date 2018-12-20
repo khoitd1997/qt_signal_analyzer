@@ -11,5 +11,6 @@
         <file>down-arrow.png</file>
         <file>CollapsibleSection.qml</file>
         <file>SliderWithText.qml</file>
+        <file>ScopeSetting.qml</file>
     </qresource>
 </RCC>
