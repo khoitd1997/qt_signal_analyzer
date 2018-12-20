@@ -62,7 +62,8 @@ ApplicationWindow {
         anchors.leftMargin: 10
         width: parent.width / 3
 
-        onAxisChanged: scopeView.changeAxis(id, axisName, newRange)
+        onAxisOffsetChanged: scopeView.changeAxisOffset(id, axisName, newOffset)
+        onAxisRangeChanged: scopeView.changeAxisRange(id, axisName, newRange)
         onRefreshRateChanged: scopeView.changeRefreshRate(rate);
         onAntialiasingEnabled: scopeView.antialiasing = enabled;
         onSeriesNameChanged: scopeView.changeSeriesName(id, newName);

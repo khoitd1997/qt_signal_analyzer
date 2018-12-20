@@ -40,7 +40,7 @@ QT_CHARTS_USE_NAMESPACE
 
 Q_DECLARE_METATYPE(QAbstractSeries*)
 Q_DECLARE_METATYPE(QAbstractAxis*)
-static const int maxPoints = 30000;
+static const int maxPoints = 100000;
 static const double storageThreshold = 0.8;
 
 DataSource::DataSource(QQmlApplicationEngine* appEngine, QObject* parent)

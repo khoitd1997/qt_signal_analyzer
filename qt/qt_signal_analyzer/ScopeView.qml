@@ -29,6 +29,7 @@
 
 import QtQuick 2.0
 import QtCharts 2.1
+import "."
 
 ChartView {
     id: chartView
@@ -36,6 +37,10 @@ ChartView {
     theme: ChartView.ChartThemeDark
     property bool openGL: true
     property bool openGLSupported: true
+
+    property real oldYOffset: 0
+    property real oldXOffset: 0
+
     onOpenGLChanged: {
         if (openGLSupported) {
             series("Signal 1").useOpenGL = openGL;
@@ -50,6 +55,7 @@ ChartView {
     }
 
     ValueAxis {
+        titleText: "Time"
         id: timeAxis
         min: 400
         max: 4000
@@ -57,10 +63,16 @@ ChartView {
 
     LineSeries {
         id: lineSeries0
+        visible: true
         name: "Signal 0"
+        color: ScopeSetting.signalColorList[0]
         axisX: timeAxis
         axisY: ValueAxis {
-            min: 0
+            tickCount: 8
+            visible: lineSeries0.visible
+            labelsColor: lineSeries0.color
+            color: lineSeries0.color
+            min: -5
             max: 5
         }
         useOpenGL: chartView.openGL
@@ -70,10 +82,14 @@ ChartView {
         id: lineSeries1
         visible: true
         name: "Signal 1"
+        color: ScopeSetting.signalColorList[1]
         axisX: timeAxis
-
         axisYRight: ValueAxis {
-            min: 0
+            tickCount: 8
+            visible: lineSeries1.visible
+            labelsColor: lineSeries1.color
+            color: lineSeries1.color
+            min: -5
             max: 5
         }
         useOpenGL: chartView.openGL
@@ -81,11 +97,17 @@ ChartView {
 
     LineSeries {
         id: lineSeries2
+        visible: true
         name: "Signal 2"
         axisX: timeAxis
+        color: ScopeSetting.signalColorList[2]
         axisY: ValueAxis {
-            min: 0
-            max: 1024
+            tickCount: 8
+            visible: lineSeries2.visible
+            labelsColor: lineSeries2.color
+            color: lineSeries2.color
+            min: -5
+            max: 5
         }
         useOpenGL: chartView.openGL
     }
@@ -95,9 +117,14 @@ ChartView {
         visible: true
         name: "Signal 3"
         axisX: timeAxis
+        color: ScopeSetting.signalColorList[3]
         axisYRight: ValueAxis {
-            min: 0
-            max: 1024
+            tickCount: 8
+            visible: lineSeries3.visible
+            labelsColor: lineSeries3.color
+            color: lineSeries3.color
+            min: -5
+            max: 5
         }
         useOpenGL: chartView.openGL
     }
@@ -132,22 +159,49 @@ ChartView {
         chartView.series(id).visible = isOn
     }
 
-    function changeAxis(id, axisName, newRange){
+    function changeAxisOffset(id, axisName, newOffset){
         if (axisName === "x") {
-            timeAxis.max += (newRange - 
+            timeAxis.min += (newOffset-oldXOffset)
+            timeAxis.max += (newOffset-oldXOffset)
+            oldXOffset = newOffset
+        } else if(axisName === "y") {
+            if(id%2 !=0){
+                chartView.series(id).axisYRight.max += (newOffset-oldYOffset)
+                chartView.series(id).axisYRight.min += (newOffset-oldYOffset)
+            } else {
+                chartView.series(id).axisY.max += (newOffset-oldYOffset)
+                chartView.series(id).axisY.min += (newOffset-oldYOffset)
+            }
+            oldYOffset = newOffset
+        }
+    }
+
+    function changeAxisRange(id, axisName, newRange){
+        if (axisName === "x") {
+            timeAxis.max += (newRange -
                             (chartView.series(id).axisX.max - chartView.series(id).axisX.min))/2
-            
-            timeAxis.min -= (newRange - 
+
+            timeAxis.min -= (newRange -
                             (chartView.series(id).axisX.max - chartView.series(id).axisX.min))/2
 
         } else if(axisName === "y") {
-            chartView.series(id).axisY.max += (newRange 
-                                              - (chartView.series(id).axisY.max 
-                                              - chartView.series(id).axisY.min))/2
-            
-            chartView.series(id).axisY.min -= (newRange 
-                                              - (chartView.series(id).axisY.max 
-                                              - chartView.series(id).axisY.min))/2
+            if((id%2) !=0){
+                chartView.series(id).axisYRight.max += (newRange
+                                                        - (chartView.series(id).axisYRight.max
+                                                        - chartView.series(id).axisYRight.min))/2.0
+
+                chartView.series(id).axisYRight.min -= (newRange
+                                                        - (chartView.series(id).axisYRight.max
+                                                        - chartView.series(id).axisYRight.min))/2.0
+            } else {
+                chartView.series(id).axisY.max += (newRange
+                                                    - (chartView.series(id).axisY.max
+                                                    - chartView.series(id).axisY.min))/2.0
+
+                chartView.series(id).axisY.min -= (newRange
+                                                    - (chartView.series(id).axisY.max
+                                                    - chartView.series(id).axisY.min))/2.0
+            }
         }
     }
 

@@ -48,11 +48,9 @@ Item {
     // graph chooser section
     signal seriesNameChanged(int id, string newName)
     signal seriesDisplayChanged(int id, bool isOn)
-    signal axisChanged(int id, string axisName, real newRange)
+    signal axisRangeChanged(int id, string axisName, real newRange)
+    signal axisOffsetChanged(int id, string axisName, real newOffset)
 
-//    ButtonGroup {
-//        buttons: checkBoxColumn.children
-//    }
     CollapsibleSection {
             id: sectionHeader1
             width: parent.width
@@ -95,10 +93,12 @@ Item {
             spacing: parent.width / 12
             topPadding: 10
             Repeater {
-                model: 4
+                model: ScopeSetting.signalColorList
                 CheckboxButton {
                     numberID: index
                     text: "Signal " + index
+                    buttonTextColor: modelData
+                    buttonBorderColor: ScopeSetting.signalBorderColorList[index]
                     isChecked: true
                     onNameChanged: {
                         seriesNameChanged(numberID, newName)
@@ -125,6 +125,8 @@ Item {
                     anchors.top: parent.top
                     id: currentSignalButton
                     text: "Selected Signal: "
+                    buttonBorderColor: ScopeSetting.signalBorderColorList[currentSelection]
+                    buttonTextColor: ScopeSetting.signalColorList[currentSelection]
                     items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
                     currentSelection: 0
             }
@@ -134,22 +136,52 @@ Item {
                 sliderFrom: 1
                 sliderTo: 50000
                 sliderDefaultVal: 25000
-                sliderText: "Change Time Scaling:"
+                sliderText: "Change X Scaling:"
+                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
                 width: section1.width
                 onSliderMoved: {
-                        axisChanged(currentSignalButton.currentSelection, "x", newRange)
+                        axisRangeChanged(currentSignalButton.currentSelection, "x", newRange)
+                }
+            }
+
+            SliderWithText {
+                id: xSliderOffset
+                anchors.top: xSlider.bottom
+                sliderText: "Change X Offset: "
+                sliderFrom: -20000
+                sliderTo: 20000
+                sliderDefaultVal: (sliderTo + sliderFrom) / 2
+                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
+                width: section1.width
+                onSliderMoved: {
+                        axisOffsetChanged(currentSignalButton.currentSelection, "x", newRange)
                 }
             }
         
             SliderWithText {
-                anchors.top: xSlider.bottom
-                sliderText: "Change Voltage Scaling:"
-                sliderFrom: 1
-                sliderTo: 5
+                id: ySlider
+                anchors.top: xSliderOffset.bottom
+                sliderText: "Change Y Scaling:"
+                sliderFrom: 0.1
+                sliderTo: 10
                 sliderDefaultVal: 4
+                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
                 width: section1.width
                 onSliderMoved: {
-                        axisChanged(currentSignalButton.currentSelection, "y", newRange)
+                        axisRangeChanged(currentSignalButton.currentSelection, "y", newRange)
+                }
+            }
+
+            SliderWithText {
+                anchors.top: ySlider.bottom
+                sliderText: "Change Y Offset: "
+                sliderFrom: -10
+                sliderTo: 10
+                sliderDefaultVal: (sliderTo + sliderFrom) / 2
+                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
+                width: section1.width
+                onSliderMoved: {
+                        axisOffsetChanged(currentSignalButton.currentSelection, "y", newRange)
                 }
             }
         }
