@@ -90,7 +90,7 @@ Item {
             width: parent.width
             id: checkBoxColumn
 
-            spacing: parent.width / 12
+            spacing: parent.width / 14
             topPadding: 10
             Repeater {
                 model: ScopeSetting.signalColorList

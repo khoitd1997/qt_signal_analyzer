@@ -70,14 +70,21 @@ ApplicationWindow {
         }
     }
 
-    LiveTab {
-            id: liveTab
-            width: parent.width
-            height: parent.height
-            anchors.top: menuBar.bottom
-            anchors.right: parent.right
-            anchors.leftMargin: sideBar.width + 2
-            anchors.left: parent.left
+    Item {
+        id: tabList
+        property int currTabIndex: 0
+        width: parent.width
+        height: parent.height
+
+        LiveTab {
+                id: liveTab
+                width: parent.width
+                height: parent.height
+                anchors.top: menuBar.bottom
+                anchors.right: parent.right
+                anchors.leftMargin: sideBar.width + 2
+                anchors.left: parent.left
+        }
     }
 
     BottomBar {
@@ -85,10 +92,8 @@ ApplicationWindow {
     }
 
     function changeTab(newTabIndex) {
-        if(newTabIndex === 0) {
-            liveTab.visible = false
-        } else if (newTabIndex === 1) {
-            liveTab.visible = true
-        }
+        tabList.children[tabList.currTabIndex].visible = false
+        tabList.children[newTabIndex].visible = true
+        tabList.currTabIndex = newTabIndex
     }
 }

@@ -10,6 +10,8 @@ Drawer {
     position: 0
     visible: true
 
+    property int currTabIndex: 0
+
     signal tabChanged(int newTabIndex)
 
     Rectangle {
@@ -54,9 +56,8 @@ Drawer {
     }
     
     function changeCurrTab(iconIndex) {
-        for(var i = 0; i < iconList.count; i++){
-            iconList.itemAt(i).opacity = 0.3
-        }
+        iconList.itemAt(sideBar.currTabIndex).opacity = 0.3
         iconList.itemAt(iconIndex).opacity = 0.8
+        sideBar.currTabIndex = iconIndex
     }
 }

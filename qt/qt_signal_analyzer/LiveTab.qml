@@ -20,7 +20,6 @@ Item {
 
     ScopeView {
         id: scopeView
-        width: parent.width - controlPanel.width
         anchors.top: parent.top
         anchors.topMargin: -7
 
