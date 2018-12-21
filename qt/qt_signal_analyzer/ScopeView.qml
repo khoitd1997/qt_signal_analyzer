@@ -114,7 +114,7 @@ ChartView {
 
     LineSeries {
         id: lineSeries3
-        visible: false
+        visible: true
         name: "Signal 3"
         axisX: xAxis
         color: ScopeSetting.signalColorList[3]
@@ -126,6 +126,32 @@ ChartView {
             min: -5
             max: 5
         }
+        useOpenGL: chartView.openGL
+    }
+
+    LineSeries {
+        XYPoint { x: xAxis.min; y: 2 }
+        XYPoint { x: xAxis.max; y: 2 }
+
+        style: Qt.DotLine
+        visible: true
+        name: "Cursor 1"
+        axisX: xAxis
+        color: "#78D1C5"
+        axisYRight: lineSeries1.axisYRight
+        useOpenGL: chartView.openGL
+    }
+
+    LineSeries {
+        XYPoint { x: xAxis.min; y: 2 }
+        XYPoint { x: xAxis.max; y: 2 }
+
+        style: Qt.DotLine
+        visible: true
+        name: "Cursor 1"
+        axisX: xAxis
+        color: "#78D1C5"
+        axisYRight: lineSeries1.axisYRight
         useOpenGL: chartView.openGL
     }
 
@@ -155,6 +181,11 @@ ChartView {
             dataSource.update(chartView.series(id));
             xAxis.min += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - xAxis.max;
             xAxis.max += chartView.series(id).at(chartView.series(id).count - 1).x + 5 - xAxis.max;
+            chartView.series(4).remove(1)
+            chartView.series(4).remove(0)
+            chartView.series(4).append(xAxis.min, 2)
+            chartView.series(4).append(xAxis.max, 2)
+            chartView.series(4).axisYRight = lineSeries1.axisYRight
         }
     }
 

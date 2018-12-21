@@ -104,6 +104,7 @@ Item {
                         var newItems = currentSignalButton.items
                         newItems[numberID] = newName
                         currentSignalButton.items = newItems
+                        currentCursorButton.items = newItems
                     }
                     onCheckChanged: {
                         seriesDisplayChanged(numberID, checkStatus)
@@ -130,60 +131,65 @@ Item {
                     currentSelection: 0
             }
 
-            SliderWithText {
-                id: xSlider
-                sliderFrom: 1
-                sliderTo: 50000
-                sliderDefaultVal: 25000
-                sliderText: "Change X Scaling:"
-                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
-                width: section1.width
-                onSliderMoved: {
-                        axisRangeChanged(currentSignalButton.currentSelection, "x", newRange)
+            ListModel {
+                id: sliderGraphModel
+                ListElement {
+                sliderFromMod: 1
+                sliderToMod: 50000
+                sliderDefaultValMod: 25000
+                sliderTextMod: "Change X Scaling:"
+                sliderTextColorMod: "#B0B5B4"
+                axisMod: "x"
+                }
+                
+                ListElement {
+                sliderTextMod: "Change X Offset: "
+                sliderFromMod: -20000
+                sliderToMod: 20000
+                sliderDefaultValMod: 0
+                sliderTextColorMod: "#B0B5B4"
+                axisModMod: "x"
+                }
+                
+                ListElement {
+                sliderTextMod: "Change Y Scaling:"
+                sliderFromMod: 0.1
+                sliderToMod: 10
+                sliderDefaultValMod: 4
+                sliderTextColorMod: "#B0B5B4"
+                axisModMod: "y"
+                }
+                
+                ListElement {
+                sliderTextMod: "Change Y Offset: "
+                sliderFromMod: -10
+                sliderToMod: 10
+                sliderDefaultValMod: 0
+                sliderTextColorMod: "#B0B5B4"
+                axisModMod: "y"
                 }
             }
+            Column {
+//                id: cursorControl
+                anchors.top: currentSignalButton.bottom
+                anchors.topMargin: 0
 
-            SliderWithText {
-                id: xSliderOffset
-                anchors.top: xSlider.bottom
-                sliderText: "Change X Offset: "
-                sliderFrom: -20000
-                sliderTo: 20000
-                sliderDefaultVal: (sliderTo + sliderFrom) / 2
-                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
-                width: section1.width
-                onSliderMoved: {
-                        axisOffsetChanged(currentSignalButton.currentSelection, "x", newRange)
+            Repeater {
+                model: sliderGraphModel
+                SliderWithText {
+                    sliderFrom: sliderFromMod
+                    sliderTo: sliderToMod
+                    sliderDefaultVal: sliderDefaultValMod
+                    sliderText: sliderTextMod
+                    sliderTextColor: sliderTextColorMod
+                    width: section1.width
+                    onSliderMoved: {
+                            axisRangeChanged(currentSignalButton.currentSelection, axisMod, newRange)
+                    }
                 }
             }
-        
-            SliderWithText {
-                id: ySlider
-                anchors.top: xSliderOffset.bottom
-                sliderText: "Change Y Scaling:"
-                sliderFrom: 0.1
-                sliderTo: 10
-                sliderDefaultVal: 4
-                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
-                width: section1.width
-                onSliderMoved: {
-                        axisRangeChanged(currentSignalButton.currentSelection, "y", newRange)
-                }
             }
-
-            SliderWithText {
-                anchors.top: ySlider.bottom
-                sliderText: "Change Y Offset: "
-                sliderFrom: -10
-                sliderTo: 10
-                sliderDefaultVal: (sliderTo + sliderFrom) / 2
-                sliderTextColor: ScopeSetting.signalColorList[currentSignalButton.currentSelection]
-                width: section1.width
-                onSliderMoved: {
-                        axisOffsetChanged(currentSignalButton.currentSelection, "y", newRange)
-                }
-            }
-        }
+       }
     }
 
     CollapsibleSection {
@@ -201,17 +207,17 @@ Item {
         PropertyAnimation { id: tabDown2;
                             easing.type: Easing.Linear	;
                             target: section2;
-                            property: "visible";
-                            from: false;
-                            to: true;
+                            property: "height";
+                            from: 0;
+                            to: section2.childrenRect.height + 10;
                             duration: 150 }
 
         PropertyAnimation { id: tabUp2;
                             easing.type: Easing.Linear;
                             target: section2;
-                            property: "visible";
-                            from: true;
-                            to: false;
+                            property: "height";
+                            from: section2.childrenRect.height + 10;
+                            to: 0;
                             duration: 150 }
         id: section2
         width: sectionHeader1.width
@@ -246,6 +252,112 @@ Item {
             enabled: true
             currentSelection: 0
             onSelectionChanged: antialiasingEnabled(currentSelection == 1);
+            }
+        }
+    }
+
+    CollapsibleSection {
+            id: cursorHeader
+            width: parent.width
+            displayText: "Cursor Settings"
+            anchors.topMargin: 10
+            anchors.top: section2.bottom
+            onIsClicked: {
+                isOn ? tabUp3.running = true : tabDown3.running = true
+                isOn ? cursorSection.visible = false : cursorSection.visible = true
+            }
+    }
+
+    Rectangle {
+        PropertyAnimation { id: tabDown3;
+                            easing.type: Easing.Linear	;
+                            target: cursorSection;
+                            property: "height";
+                            from: 0;
+                            to: cursorSection.childrenRect.height + 10;
+                            duration: 150 }
+
+        PropertyAnimation { id: tabUp3;
+                            easing.type: Easing.Linear;
+                            target: cursorSection;
+                            property: "height";
+                            from: cursorSection.childrenRect.height + 10;
+                            to: 0;
+                            duration: 150 }
+        id: cursorSection
+        width: cursorHeader.width
+//        height: 0
+        visible: false
+        anchors.top: cursorHeader.bottom
+        color: "#3A3A3A"
+
+        MultiButton {
+                anchors.top: parent.top
+                id: currentCursorButton
+                text: "Cursor Target: "
+                buttonBorderColor: ScopeSetting.signalBorderColorList[currentSelection]
+                buttonTextColor: ScopeSetting.signalColorList[currentSelection]
+                items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
+                currentSelection: 0
+        }
+
+
+        Column {
+            id: cursorControl
+            anchors.top: currentCursorButton.bottom
+            anchors.topMargin: 0
+//            radius: 4
+            width: parent.width / 2
+            height: childrenRect.height
+//            color: "transparent"
+
+
+            Repeater {
+                model: ["Cursor X_A", "Cursor X_B", "Cursor Y_A", "Cursor Y_B"]
+                SliderWithText {
+//                    id: xACursorSlider
+                    sliderFrom: 0
+                    sliderTo: 100
+                    sliderDefaultVal: 50
+                    sliderText: modelData
+                    sliderTextColor: "#B0B5B4"
+                    sliderEnableColor: "#4D7AB5"
+                    width: parent.width
+                    onSliderMoved: {
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            id: cursorDivider
+            anchors.top: currentCursorButton.bottom
+            anchors.topMargin: 0
+            anchors.left: cursorControl.right
+            anchors.leftMargin: 40
+            height: cursorControl.height
+            width: 1
+            color:"#6D706F"
+        }
+
+        Rectangle {
+            id: cursorData
+            anchors.top: currentCursorButton.bottom
+            anchors.topMargin: 0
+            anchors.left: cursorDivider.right
+            anchors.leftMargin: 40
+            anchors.right: parent.right
+            radius: 4
+            width: parent.width / 2
+            height: childrenRect.height
+            color: "transparent"
+            Rectangle {
+                Label {
+                    font.pointSize: 13
+                    font.bold: true
+                    text: "<font color='#B0B5B4'>X_B - X_A: </font>
+                           <font color='#78D1C5'>50</font>"
+                }
             }
         }
     }
