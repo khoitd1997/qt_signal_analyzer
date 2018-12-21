@@ -8,13 +8,13 @@ Rectangle {
     property real sliderTo: 100
     property real sliderDefaultVal: 25
 
+    property color sliderEnableColor: "#BB63BF"
     property color sliderTextColor: "#7E7F7B"
 
     signal sliderMoved(real newRange)
 
     height: childrenRect.height
     color: "transparent"
-    anchors.top: currentSignalButton.bottom
 
     Label {
         leftPadding: 5
@@ -46,7 +46,7 @@ Rectangle {
             Rectangle {
                 width: timeScaleSlider.visualPosition * parent.width
                 height: parent.height
-                color: "#BB63BF"
+                color: control.sliderEnableColor
                 radius: 2
             }
         }
