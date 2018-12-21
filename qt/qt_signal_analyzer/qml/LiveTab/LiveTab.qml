@@ -1,6 +1,9 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.4
 
+import "ControlPanel"
+import "ScopeView"
+
 Item {
     ControlPanel {
         id: controlPanel

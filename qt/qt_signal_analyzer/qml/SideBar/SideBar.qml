@@ -30,7 +30,7 @@ Drawer {
                 height: parent.height
 
                 // color code #D1D1D1
-                model: ["qrc:live-icon.png", "qrc:analytics.png", "qrc:microchip.png"]
+                model: ["qrc:///qml/resources/live-icon.png", "qrc:///qml/resources/analytics.png", "qrc:///qml/resources/microchip.png"]
                 focus: true
 
                 delegate: Component {

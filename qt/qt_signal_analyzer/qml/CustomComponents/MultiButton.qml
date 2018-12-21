@@ -32,6 +32,7 @@ import QtQuick.Controls 2.4
 import QtQml 2.12
 import QtQuick.Controls.Material 2.4
 import "."
+import "../CustomStyle"
 
 Item {
     id: button

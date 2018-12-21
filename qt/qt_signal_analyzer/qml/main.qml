@@ -34,6 +34,11 @@ import QtQuick.Controls.Material 2.4
 import QtQuick.Controls 2.4
 import QtQuick.Dialogs 1.3
 
+import "MainMenuBar"
+import "BottomBar"
+import "SideBar"
+import "LiveTab"
+
 ApplicationWindow {
     Material.theme: Material.Dark
     Material.accent: Material.Teal

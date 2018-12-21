@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
   QQuickStyle::setFallbackStyle("Material");
   //  qDebug() << "All Themes: " << QQuickStyle::availableStyles();
   QQmlApplicationEngine engine;
-  engine.load(QUrl("qrc:/main.qml"));
+  engine.load(QUrl("qrc:///qml/main.qml"));
   DataSource dataSource(&engine);
   engine.rootContext()->setContextProperty("dataSource", &dataSource);
   return app.exec();

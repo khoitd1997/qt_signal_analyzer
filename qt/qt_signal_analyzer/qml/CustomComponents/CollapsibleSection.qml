@@ -48,7 +48,7 @@ Rectangle {
         fillMode: Image.PreserveAspectFit
         rotation: 90
         id: sectionIcon
-        source: "qrc:down-arrow.png"
+        source: "qrc:///qml/resources/down-arrow.png"
     }
 
     RotationAnimator {

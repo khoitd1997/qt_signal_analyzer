@@ -30,6 +30,7 @@
 import QtQuick 2.0
 import QtCharts 2.1
 import "."
+import "../../CustomStyle"
 
 ChartView {
     id: chartView

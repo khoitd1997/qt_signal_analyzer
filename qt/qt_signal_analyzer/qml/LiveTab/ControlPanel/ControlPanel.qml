@@ -34,6 +34,9 @@ import QtQuick 2.12
 import QtQuick.Controls.Material 2.4
 import "."
 
+import "../../CustomComponents"
+import "../../CustomStyle"
+
 Item {
     id: colLayout
     Layout.fillHeight: true
@@ -286,7 +289,6 @@ Item {
                             duration: 150 }
         id: cursorSection
         width: cursorHeader.width
-//        height: 0
         visible: false
         anchors.top: cursorHeader.bottom
         color: "#3A3A3A"
@@ -306,16 +308,13 @@ Item {
             id: cursorControl
             anchors.top: currentCursorButton.bottom
             anchors.topMargin: 0
-//            radius: 4
             width: parent.width / 2
             height: childrenRect.height
-//            color: "transparent"
 
 
             Repeater {
                 model: ["Cursor X_A", "Cursor X_B", "Cursor Y_A", "Cursor Y_B"]
                 SliderWithText {
-//                    id: xACursorSlider
                     sliderFrom: 0
                     sliderTo: 100
                     sliderDefaultVal: 50
@@ -355,8 +354,7 @@ Item {
                 Label {
                     font.pointSize: 13
                     font.bold: true
-                    text: "<font color='#B0B5B4'>X_B - X_A: </font>
-                           <font color='#78D1C5'>50</font>"
+                    text: "<font color='#B0B5B4'>X_B - X_A: </font> <font color='#78D1C5'>50</font>"
                 }
             }
         }
