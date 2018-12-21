@@ -19,5 +19,7 @@
         <file>./qml/resources/analytics.png</file>
         <file>./qml/resources/microchip.png</file>
         <file>./qml/LiveTab/LiveTab.qml</file>
+        <file>./qml/LiveTab/ControlPanel/CursorControl.qml</file>
+        <file>./qml/LiveTab/ControlPanel/GraphControl.qml</file>
     </qresource>
 </RCC>

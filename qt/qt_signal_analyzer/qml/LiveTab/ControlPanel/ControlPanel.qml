@@ -40,7 +40,7 @@ import "../../CustomStyle"
 Item {
     id: colLayout
     Layout.fillHeight: true
-    height:  section1.height
+//    height:  graphControl.height
     width: parent.width
 
 //    property alias antialiasButton: antialiasButton
@@ -54,151 +54,17 @@ Item {
     signal axisRangeChanged(int id, string axisName, real newRange)
     signal axisOffsetChanged(int id, string axisName, real newOffset)
 
-    CollapsibleSection {
-            id: sectionHeader1
-            width: parent.width
-            displayText: "Graph Settings"
-            anchors.top: parent.top
-            onIsClicked: {
-                isOn ? tabUp1.running = true : tabDown1.running = true
-                isOn ? section1.visible = false : section1.visible = true
-            }
-    }
-
-    Rectangle {
-        PropertyAnimation { id: tabDown1;
-                            easing.type: Easing.Linear	;
-                            target: section1;
-                            property: "height";
-                            from: 0;
-                            to: section1.childrenRect.height + 10;
-                            duration: 150 }
-
-        PropertyAnimation { id: tabUp1;
-                            easing.type: Easing.Linear;
-                            target: section1;
-                            property: "height";
-                            from: section1.childrenRect.height + 10;
-                            to: 0;
-                            duration: 150 }
-        id: section1
-        width: sectionHeader1.width
-        height: 0
-        visible: false
-        anchors.top: sectionHeader1.bottom
-        color: "#3A3A3A"
-
-
-        Row  {
-            width: parent.width
-            id: checkBoxColumn
-
-            spacing: parent.width / 14
-            topPadding: 10
-            Repeater {
-                model: ScopeSetting.signalColorList
-                CheckboxButton {
-                    numberID: index
-                    text: "Signal " + index
-                    buttonTextColor: modelData
-                    buttonBorderColor: ScopeSetting.signalBorderColorList[index]
-                    onNameChanged: {
-                        seriesNameChanged(numberID, newName)
-                        var newItems = currentSignalButton.items
-                        newItems[numberID] = newName
-                        currentSignalButton.items = newItems
-                        currentCursorButton.items = newItems
-                    }
-                    onCheckChanged: {
-                        seriesDisplayChanged(numberID, checkStatus)
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            anchors.top: checkBoxColumn.bottom
-            anchors.topMargin: 10
-            radius: 4
-            width: childrenRect.width
-            height: childrenRect.height
-            color: "transparent"
-
-            MultiButton {
-                    anchors.top: parent.top
-                    id: currentSignalButton
-                    text: "Selected Signal: "
-                    buttonBorderColor: ScopeSetting.signalBorderColorList[currentSelection]
-                    buttonTextColor: ScopeSetting.signalColorList[currentSelection]
-                    items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
-                    currentSelection: 0
-            }
-
-            ListModel {
-                id: sliderGraphModel
-                ListElement {
-                sliderFromMod: 1
-                sliderToMod: 50000
-                sliderDefaultValMod: 25000
-                sliderTextMod: "Change X Scaling:"
-                sliderTextColorMod: "#B0B5B4"
-                axisMod: "x"
-                }
-                
-                ListElement {
-                sliderTextMod: "Change X Offset: "
-                sliderFromMod: -20000
-                sliderToMod: 20000
-                sliderDefaultValMod: 0
-                sliderTextColorMod: "#B0B5B4"
-                axisModMod: "x"
-                }
-                
-                ListElement {
-                sliderTextMod: "Change Y Scaling:"
-                sliderFromMod: 0.1
-                sliderToMod: 10
-                sliderDefaultValMod: 4
-                sliderTextColorMod: "#B0B5B4"
-                axisModMod: "y"
-                }
-                
-                ListElement {
-                sliderTextMod: "Change Y Offset: "
-                sliderFromMod: -10
-                sliderToMod: 10
-                sliderDefaultValMod: 0
-                sliderTextColorMod: "#B0B5B4"
-                axisModMod: "y"
-                }
-            }
-            Column {
-//                id: cursorControl
-                anchors.top: currentSignalButton.bottom
-                anchors.topMargin: 0
-
-            Repeater {
-                model: sliderGraphModel
-                SliderWithText {
-                    sliderFrom: sliderFromMod
-                    sliderTo: sliderToMod
-                    sliderDefaultVal: sliderDefaultValMod
-                    sliderText: sliderTextMod
-                    sliderTextColor: sliderTextColorMod
-                    width: section1.width
-                    onSliderMoved: {
-                            axisRangeChanged(currentSignalButton.currentSelection, axisMod, newRange)
-                    }
-                }
-            }
-            }
-       }
+    GraphControl {
+        id: graphControl
+        width: parent.width
+        height: childrenRect.height
+        anchors.top: parent.top
     }
 
     CollapsibleSection {
             id: sectionHeader2
             width: parent.width
-            anchors.top: section1.bottom
+            anchors.top: graphControl.bottom
             anchors.topMargin: 10
             displayText: "Signal Display Settings"
             onIsClicked: {
@@ -223,7 +89,7 @@ Item {
                             to: 0;
                             duration: 150 }
         id: section2
-        width: sectionHeader1.width
+        width: sectionHeader2.width
         visible: false
         anchors.top: sectionHeader2.bottom
         color: "#3A3A3A"
@@ -259,104 +125,9 @@ Item {
         }
     }
 
-    CollapsibleSection {
-            id: cursorHeader
-            width: parent.width
-            displayText: "Cursor Settings"
-            anchors.topMargin: 10
-            anchors.top: section2.bottom
-            onIsClicked: {
-                isOn ? tabUp3.running = true : tabDown3.running = true
-                isOn ? cursorSection.visible = false : cursorSection.visible = true
-            }
-    }
-
-    Rectangle {
-        PropertyAnimation { id: tabDown3;
-                            easing.type: Easing.Linear	;
-                            target: cursorSection;
-                            property: "height";
-                            from: 0;
-                            to: cursorSection.childrenRect.height + 10;
-                            duration: 150 }
-
-        PropertyAnimation { id: tabUp3;
-                            easing.type: Easing.Linear;
-                            target: cursorSection;
-                            property: "height";
-                            from: cursorSection.childrenRect.height + 10;
-                            to: 0;
-                            duration: 150 }
-        id: cursorSection
-        width: cursorHeader.width
-        visible: false
-        anchors.top: cursorHeader.bottom
-        color: "#3A3A3A"
-
-        MultiButton {
-                anchors.top: parent.top
-                id: currentCursorButton
-                text: "Cursor Target: "
-                buttonBorderColor: ScopeSetting.signalBorderColorList[currentSelection]
-                buttonTextColor: ScopeSetting.signalColorList[currentSelection]
-                items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
-                currentSelection: 0
-        }
-
-
-        Column {
-            id: cursorControl
-            anchors.top: currentCursorButton.bottom
-            anchors.topMargin: 0
-            width: parent.width / 2
-            height: childrenRect.height
-
-
-            Repeater {
-                model: ["Cursor X_A", "Cursor X_B", "Cursor Y_A", "Cursor Y_B"]
-                SliderWithText {
-                    sliderFrom: 0
-                    sliderTo: 100
-                    sliderDefaultVal: 50
-                    sliderText: modelData
-                    sliderTextColor: "#B0B5B4"
-                    sliderEnableColor: "#4D7AB5"
-                    width: parent.width
-                    onSliderMoved: {
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            id: cursorDivider
-            anchors.top: currentCursorButton.bottom
-            anchors.topMargin: 0
-            anchors.left: cursorControl.right
-            anchors.leftMargin: 40
-            height: cursorControl.height
-            width: 1
-            color:"#6D706F"
-        }
-
-        Rectangle {
-            id: cursorData
-            anchors.top: currentCursorButton.bottom
-            anchors.topMargin: 0
-            anchors.left: cursorDivider.right
-            anchors.leftMargin: 40
-            anchors.right: parent.right
-            radius: 4
-            width: parent.width / 2
-            height: childrenRect.height
-            color: "transparent"
-            Rectangle {
-                Label {
-                    font.pointSize: 13
-                    font.bold: true
-                    text: "<font color='#B0B5B4'>X_B - X_A: </font> <font color='#78D1C5'>50</font>"
-                }
-            }
-        }
+    CursorControl {
+        width: parent.width
+        anchors.top: section2.bottom
+        anchors.right: parent.right
     }
 }
