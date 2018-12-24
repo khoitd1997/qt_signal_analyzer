@@ -28,6 +28,8 @@
 ****************************************************************************/
 
 #include "datasource.h"
+#include "measuremodule.h"
+#include "measureobj.h"
 
 #include <QApplication>
 #include <QGuiApplication>
@@ -39,7 +41,10 @@
 #include <QtQml/QQmlEngine>
 #include <QtQuick/QQuickView>
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char* argv[])
+{
+
   // Qt Charts uses Qt Graphics View Framework for drawing, therefore
   // QApplication must be used.
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
@@ -48,8 +53,28 @@ int main(int argc, char *argv[]) {
   QQuickStyle::setFallbackStyle("Material");
   //  qDebug() << "All Themes: " << QQuickStyle::availableStyles();
   QQmlApplicationEngine engine;
-  engine.load(QUrl("qrc:///qml/main.qml"));
+  //  MeasureObj measureObj;
   DataSource dataSource(&engine);
+  //  MeasureModule measuremodule;
+  qmlRegisterType<MeasureObj>("MeasureObj", 1, 0, "MeasureObj");
+  qmlRegisterUncreatableType<MeasureModule>(
+    "MeasureModule",
+    1,
+    0,
+    "MeasureModule",
+    "Measure Module is always instantiated in c++ code");
+  qmlRegisterUncreatableType<DataSource>(
+    "DataSource",
+    1,
+    0,
+    "DataSource",
+    "Data Source is always instantiated in c++ code");
+  //  qmlRegisterType<MeasureModule>("MeasureModule", 1, 0, "MeasureModule");
+  //  qmlRegisterType<DataSource>("DataSource", 1, 0, "DataSource");
+
   engine.rootContext()->setContextProperty("dataSource", &dataSource);
+  //  engine.rootContext()->setContextProperty("measureObj", &measureObj);
+
+  engine.load(QUrl("qrc:///qml/main.qml"));
   return app.exec();
 }

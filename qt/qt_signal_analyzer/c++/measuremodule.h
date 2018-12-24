@@ -4,37 +4,35 @@
 #include "QList"
 #include "QObject"
 #include "QQmlListProperty"
-#include "measureobj.h"
+#include <QtCharts/QAbstractSeries>
+#include <QtCharts/QXYSeries>
 
-using MeasType = MeasureObj::MeasureType;
+QT_BEGIN_NAMESPACE
+class QQuickView;
+QT_END_NAMESPACE
 
-class Measuremodule : public QObject
+QT_CHARTS_USE_NAMESPACE
+
+class MeasureModule : public QObject
 {
   Q_OBJECT
-  Q_PROPERTY(QQmlListProperty<MeasureObj> measureObjs READ measureObjs NOTIFY
-               measureObjsChanged)
 
 public:
-  //  ~Measuremodule();
-  //  Measuremodule(const Measuremodule& other);
-  explicit Measuremodule(QObject* parent = nullptr);
-  QQmlListProperty<MeasureObj> measureObjs();
-  ~Measuremodule();
+  explicit MeasureModule(QList<QList<QPointF>*>& dataList);
+  ~MeasureModule();
 
 signals:
-  void measureObjsChanged();
+  void measureFinished();
 
 public slots:
-  void update();
+  void setGuiSource(QObject* measureGUI);
+  void updateMeasure(void);
+  QList<qreal> getResult(void);
 
 private:
-  static void appendMeasureObj(QQmlListProperty<MeasureObj>* list,
-                               MeasureObj* measObj);
-  static int countMeasureObj(QQmlListProperty<MeasureObj>*);
-  static MeasureObj* atMeasureObj(QQmlListProperty<MeasureObj>*, int index);
-  static void clearMeasureObj(QQmlListProperty<MeasureObj>* list);
-
-  QList<MeasureObj*> m_measureObjs;
+  QList<QList<QPointF>*>& m_data;
+  QList<qreal> measResult;
+  QObject* measureGUI;
 };
 
 #endif // MATHMODULE_H

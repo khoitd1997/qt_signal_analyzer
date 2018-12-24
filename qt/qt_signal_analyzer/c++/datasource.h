@@ -30,9 +30,18 @@
 #ifndef DATASOURCE_H
 #define DATASOURCE_H
 
+#include "QEventLoop"
+#include <QMutex>
 #include <QQmlApplicationEngine>
+#include <QReadWriteLock>
+#include <QThread>
+#include <QWaitCondition>
 #include <QtCharts/QAbstractSeries>
+#include <QtCharts/QXYSeries>
 #include <QtCore/QObject>
+
+#include "graphdatamodule.h"
+#include "measuremodule.h"
 
 QT_BEGIN_NAMESPACE
 class QQuickView;
@@ -43,18 +52,44 @@ QT_CHARTS_USE_NAMESPACE
 class DataSource : public QObject
 {
   Q_OBJECT
-public:
-  explicit DataSource(QQmlApplicationEngine* appEngine, QObject* parent = 0);
+  Q_PROPERTY(
+    MeasureModule* measureModule READ measureModule NOTIFY measureModuleChanged)
+  Q_PROPERTY(
+    GraphDataModule* graphModule READ graphModule NOTIFY graphModuleChanged)
 
-Q_SIGNALS:
+signals:
+  void startWork();
+  void startUpdate();
+  void dataProcessDone();
+  void measureModuleChanged();
+  void graphModuleChanged();
+
+public:
+  explicit DataSource(QObject* parent = nullptr);
+  ~DataSource();
 
 public slots:
-  void generateData(void);
-  void update(QAbstractSeries* series);
+  void start(void);
+  void processData(void);
+  void incrementFinished();
+  MeasureModule* measureModule(void) const;
+  GraphDataModule* graphModule(void) const;
 
 private:
-  QQmlApplicationEngine* m_appEngine;
-  QList<QPointF> m_data;
+  MeasureModule* m_measureModule = nullptr;
+  GraphDataModule* m_graphModule = nullptr;
+
+  unsigned int totalFinished = 0;
+  QReadWriteLock dataLock;
+  QMutex eventCounterLock;
+  QEventLoop waitLoop;
+
+  bool graphDoneFinishedFlag = false;
+
+  QThread dataThread;
+  QThread graphDataThread;
+  QThread measureDataThread;
+  QList<QList<QPointF>*> m_data;
 };
 
 #endif // DATASOURCE_H

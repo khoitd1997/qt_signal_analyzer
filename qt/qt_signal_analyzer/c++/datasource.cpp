@@ -29,6 +29,7 @@
 
 #include "datasource.h"
 #include <QQmlApplicationEngine>
+#include <QQmlProperty>
 #include <QtCharts/QAreaSeries>
 #include <QtCharts/QXYSeries>
 #include <QtCore/QDebug>
@@ -36,54 +37,109 @@
 #include <QtCore/QtMath>
 #include <QtQuick/QQuickItem>
 
+#include "dataworker.h"
+#include "graphdatamodule.h"
+
+static const auto totalSerie = 4;
+static const auto totalModule = 2;
+
 QT_CHARTS_USE_NAMESPACE
 
 Q_DECLARE_METATYPE(QAbstractSeries*)
 Q_DECLARE_METATYPE(QAbstractAxis*)
-static const int maxPoints = 100000;
-static const double storageThreshold = 0.8;
 
-DataSource::DataSource(QQmlApplicationEngine* appEngine, QObject* parent)
+DataSource::DataSource(QObject* parent)
   : QObject(parent)
-  , m_appEngine(appEngine)
+  , m_measureModule(new MeasureModule(this->m_data))
+  , m_graphModule(new GraphDataModule(this->m_data))
 {
   qRegisterMetaType<QAbstractSeries*>();
   qRegisterMetaType<QAbstractAxis*>();
 
-  m_data.reserve(maxPoints);
-  generateData();
+  for (auto i = 0; i < totalSerie; ++i) {
+    m_data.append(new QList<QPointF>());
+    m_data[i]->reserve(maxPoints);
+  }
+
+  auto dataWorker = new DataWorker(dataLock, m_data);
+  dataWorker->moveToThread(&dataThread);
+
+  connect(&dataThread, &QThread::finished, dataWorker, &QObject::deleteLater);
+  connect(this, &DataSource::startWork, dataWorker, &DataWorker::startWork);
+  connect(
+    dataWorker, &DataWorker::newDataReady, this, &DataSource::processData);
+
+  dataThread.start();
+
+  m_graphModule->moveToThread(&graphDataThread);
+  connect(this,
+          &DataSource::startUpdate,
+          m_graphModule,
+          &GraphDataModule::updateLineSeries);
+  connect(m_graphModule,
+          &GraphDataModule::graphDataFinished,
+          this,
+          &DataSource::incrementFinished);
+  graphDataThread.start();
+
+  m_measureModule->moveToThread(&measureDataThread);
+  connect(this,
+          &DataSource::startUpdate,
+          m_measureModule,
+          &MeasureModule::updateMeasure);
+  connect(m_measureModule,
+          &MeasureModule::measureFinished,
+          this,
+          &DataSource::incrementFinished);
+  measureDataThread.start();
+}
+
+DataSource::~DataSource()
+{
+  dataThread.quit();
+  dataThread.wait();
 }
 
 void
-DataSource::update(QAbstractSeries* series)
+DataSource::incrementFinished()
 {
-  this->generateData();
-  if (series) {
-    QXYSeries* xySeries = static_cast<QXYSeries*>(series);
-    // Use replace instead of clear + append, it's optimized for performance
-    xySeries->replace(m_data);
-    //    qDebug() << "Series Updated " << m_data[0].x() << m_data[0].y() <<
-    //    endl;
+  QMutexLocker locker(&eventCounterLock);
+  ++totalFinished;
+  if (totalFinished == totalModule) {
+    totalFinished = 0;
+    qDebug() << "All module done" << endl;
+    waitLoop.quit();
   }
 }
 
 void
-DataSource::generateData(void)
+DataSource::start(void)
 {
-  static unsigned long currLimit = 0;
-  if (m_data.size() > storageThreshold * maxPoints) {
-    qDebug() << "Free elements" << endl;
-    m_data.erase(m_data.begin(), m_data.begin() + m_data.size() / 2);
-  }
+  emit startWork();
+}
 
-  for (auto j(currLimit); j < currLimit + 1024; j++) {
-    qreal x(0);
-    qreal y(0);
-    y =
-      qSin(M_PI / 50 * j) + 0.5 + QRandomGenerator::global()->generateDouble();
-    x = j;
-    m_data.append(QPointF(x, y));
-    //    qDebug() << "Generating x: " << x << endl;
-  }
-  currLimit += 1024;
+void
+DataSource::processData(void)
+{
+  QReadLocker locker(&dataLock);
+  qDebug() << "Begin data processing" << endl;
+  emit startUpdate();
+
+  waitLoop.exec(QEventLoop::ExcludeUserInputEvents |
+                QEventLoop::ExcludeSocketNotifiers);
+
+  qDebug() << "Event loop done" << endl;
+  emit dataProcessDone();
+}
+
+MeasureModule*
+DataSource::measureModule(void) const
+{
+  return m_measureModule;
+}
+
+GraphDataModule*
+DataSource::graphModule(void) const
+{
+  return m_graphModule;
 }

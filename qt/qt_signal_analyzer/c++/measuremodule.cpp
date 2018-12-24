@@ -5,84 +5,65 @@
 #include "QTimer"
 #include "QtDebug"
 #include <QQmlListProperty>
+#include <QQmlProperty>
+// Q_DECLARE_METATYPE(MeasureModule)
+// Q_DECLARE_METATYPE(MeasureModule*)
 
-using MeasType = MeasureObj::MeasureType;
-
-Measuremodule::Measuremodule(QObject* parent)
-  : QObject(parent)
+MeasureModule::MeasureModule(QList<QList<QPointF>*>& dataList)
+  : QObject()
+  , m_data(dataList)
 {
-  this->m_measureObjs.append(new MeasureObj(false, 15, MeasType::Freq, 0));
-  this->m_measureObjs.append(new MeasureObj(false, 16, MeasType::Freq, 0));
-  this->m_measureObjs.append(new MeasureObj(false, 17, MeasType::Freq, 0));
-  this->m_measureObjs.append(new MeasureObj(false, 18, MeasType::Freq, 0));
-
-  QTimer* timer = new QTimer(this);
-  connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-  timer->start(300);
+  measResult.append(4.1);
+  measResult.append(5.1);
+  measResult.append(6.1);
+  measResult.append(7.1);
 }
 
-Measuremodule::~Measuremodule()
+MeasureModule::~MeasureModule() {}
+
+void
+MeasureModule::setGuiSource(QObject* measureGUI)
 {
-  for (auto i = 0; i < this->m_measureObjs.size(); ++i) {
-    delete this->m_measureObjs[i];
-  }
+  this->measureGUI = measureGUI;
 }
 
-QQmlListProperty<MeasureObj>
-Measuremodule::measureObjs()
+QList<qreal>
+MeasureModule::getResult(void)
 {
-  return QQmlListProperty<MeasureObj>(this,
-                                      this,
-                                      &Measuremodule::appendMeasureObj,
-                                      &Measuremodule::countMeasureObj,
-                                      &Measuremodule::atMeasureObj,
-                                      &Measuremodule::clearMeasureObj);
+  qDebug() << measResult[0] << endl;
+  return measResult;
 }
 
 void
-Measuremodule::appendMeasureObj(QQmlListProperty<MeasureObj>* list,
-                                MeasureObj* measureObj)
+MeasureModule::updateMeasure()
 {
-  Measuremodule* measuremodule = qobject_cast<Measuremodule*>(list->object);
-  if (measureObj) {
-    measuremodule->m_measureObjs.append(measureObj);
+  static bool isFirst = true;
+  static qreal multiplier = 1;
+
+  for (auto i = 0; i < measResult.size(); ++i) {
+    measResult[i] = measResult[i] * multiplier;
   }
-}
 
-int
-Measuremodule::countMeasureObj(QQmlListProperty<MeasureObj>* list)
-{
-  Measuremodule* measuremodule = qobject_cast<Measuremodule*>(list->object);
-  return measuremodule->m_measureObjs.size();
-}
+  isFirst = !isFirst;
+  multiplier++;
 
-MeasureObj*
-Measuremodule::atMeasureObj(QQmlListProperty<MeasureObj>* list, int index)
-{
-  Measuremodule* measuremodule = qobject_cast<Measuremodule*>(list->object);
-  return measuremodule->m_measureObjs[index];
-}
-
-void
-Measuremodule::clearMeasureObj(QQmlListProperty<MeasureObj>* list)
-{
-  Measuremodule* measuremodule = qobject_cast<Measuremodule*>(list->object);
-
-  for (auto i = 0; i < measuremodule->m_measureObjs.size(); ++i) {
-    delete measuremodule->m_measureObjs[i];
+  auto variant = (QQmlProperty::read(measureGUI, "typeIndex")).toList();
+  qDebug() << "Type Index result: " << endl;
+  for (auto i = 0; i < variant.size(); ++i) {
+    qDebug() << i << variant[i].toInt() << endl;
   }
-  measuremodule->m_measureObjs.clear();
-}
 
-void
-Measuremodule::update()
-{
-  qDebug() << "Result is for 0 is:" << this->m_measureObjs[0]->isEnabled()
-           << this->m_measureObjs[0]->value() << this->m_measureObjs[0]->type()
-           << this->m_measureObjs[0]->targetIndex() << endl;
+  variant = (QQmlProperty::read(measureGUI, "sourceList")).toList();
+  qDebug() << "Source List result: " << endl;
+  for (auto i = 0; i < variant.size(); ++i) {
+    qDebug() << i << variant[i].toInt() << endl;
+  }
 
-  this->m_measureObjs[0]->setValue(1 + (this->m_measureObjs[0]->value()));
-  this->m_measureObjs[1]->setValue(1 + (this->m_measureObjs[1]->value()));
-  this->m_measureObjs[2]->setValue(1 + (this->m_measureObjs[2]->value()));
-  this->m_measureObjs[3]->setValue(1 + (this->m_measureObjs[3]->value()));
+  variant = (QQmlProperty::read(measureGUI, "enabledList")).toList();
+  qDebug() << "Enabled List result: " << endl;
+  for (auto i = 0; i < variant.size(); ++i) {
+    qDebug() << i << variant[i].toBool() << endl;
+  }
+
+  emit measureFinished();
 }
