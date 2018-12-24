@@ -19,6 +19,11 @@ Item {
         onAntialiasingEnabled: scopeView.antialiasing = enabled;
         onSeriesNameChanged: scopeView.changeSeriesName(id, newName);
         onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
+
+        // cursor stuffs
+        onYCursorChanged: scopeView.changeYCursor(serieIndex, cursorIndex, newPosition)
+        onXCursorChanged: scopeView.changeXCursor(cursorIndex, newPosition)
+        onCursorSwitch: scopeView.cursorSwitch(isOn)
     }
 
     ScopeView {
@@ -36,5 +41,17 @@ Item {
                 controlPanel.openGLButton.currentSelection = 0
             }
         }
+    }
+
+    MathControl {
+        id: mathControl
+        width: parent.width
+        height: childrenRect.height
+        anchors.left: scopeView.left
+        anchors.leftMargin: 10
+        anchors.top: scopeView.bottom
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.topMargin: 1
     }
 }
