@@ -40,10 +40,13 @@ import "../../CustomStyle"
 Item {
     id: colLayout
     Layout.fillHeight: true
-//    height:  graphControl.height
     width: parent.width
 
-//    property alias antialiasButton: antialiasButton
+    property var signalNames: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
+
+    property real yCursorA : 0
+
+    //    property alias antialiasButton: antialiasButton
     signal animationsEnabled(bool enabled)
     signal refreshRateChanged(variant rate);
     signal antialiasingEnabled(bool enabled)
@@ -54,6 +57,11 @@ Item {
     signal axisRangeChanged(int id, string axisName, real newRange)
     signal axisOffsetChanged(int id, string axisName, real newOffset)
 
+    // cursor control
+    signal xCursorChanged(int cursorIndex, real newPosition)
+    signal yCursorChanged(int serieIndex, int cursorIndex, real newPosition)
+    signal cursorSwitch(bool isOn)
+
     GraphControl {
         id: graphControl
         width: parent.width
@@ -61,73 +69,18 @@ Item {
         anchors.top: parent.top
     }
 
-    CollapsibleSection {
-            id: sectionHeader2
-            width: parent.width
-            anchors.top: graphControl.bottom
-            anchors.topMargin: 10
-            displayText: "Signal Display Settings"
-            onIsClicked: {
-                isOn ? tabUp2.running = true : tabDown2.running = true
-            }
-    }
-
-    Rectangle {
-        PropertyAnimation { id: tabDown2;
-                            easing.type: Easing.Linear	;
-                            target: section2;
-                            property: "height";
-                            from: 0;
-                            to: section2.childrenRect.height + 10;
-                            duration: 150 }
-
-        PropertyAnimation { id: tabUp2;
-                            easing.type: Easing.Linear;
-                            target: section2;
-                            property: "height";
-                            from: section2.childrenRect.height + 10;
-                            to: 0;
-                            duration: 150 }
-        id: section2
-        width: sectionHeader2.width
-        visible: false
-        anchors.top: sectionHeader2.bottom
-        color: "#3A3A3A"
-
-        Grid {
-        MultiButton {
-            id: sampleCountButton
-            text: "Samples: "
-            items: ["6", "128", "1024", "10000"]
-            currentSelection: 2
-            onSelectionChanged: signalSourceChanged(
-                                    signalSourceButton.item[signalSourceButton.currentSelection],
-                                    5,
-                                    selection
-                                );
-        }
-        
-        MultiButton {
-            text: "Refresh Rate: "
-            items: ["1", "24", "60"]
-            currentSelection: 2
-            onSelectionChanged: refreshRateChanged(items[currentSelection]);
-        }
-
-        MultiButton {
-            id: antialiasButton
-            text: "Antialias: "
-            items: ["OFF", "ON"]
-            enabled: true
-            currentSelection: 0
-            onSelectionChanged: antialiasingEnabled(currentSelection == 1);
-            }
-        }
+    MeasureControl {
+        id: measureControl
+        width: parent.width
+        height: childrenRect.height
+        anchors.top: graphControl.bottom
+        anchors.topMargin: 1
     }
 
     CursorControl {
+        id: cursorControl
         width: parent.width
-        anchors.top: section2.bottom
+        anchors.top: measureControl.bottom
         anchors.right: parent.right
     }
 }

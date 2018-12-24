@@ -83,9 +83,14 @@ Item {
         }
 
         Column {
+            id: columnRepeater
             anchors.top: tableHeader.bottom
             width: parent.width
             height: childrenRect.height
+            property var typeIndex: []
+            property var valueList: [0.0,0.2,0.3,0.4,0.5]
+            property var sourceList: []
+            property var enabledList: []
 
             Repeater {
                 id: tableRepeater
@@ -107,8 +112,17 @@ Item {
                                 verticalAlignment: Text.AlignVCenter
                                 elide: Text.ElideRight
                             }
+
+                            Component.onCompleted: {
+                                columnRepeater.typeIndex.push(0);
+                                columnRepeater.valueList.push(0.0);
+                                columnRepeater.sourceList.push(0);
+                                columnRepeater.enabledList.push(false);
+                            }
+
                             onActivated: {
-                                measuremodule.measureObjs[modelData].type = typeBox.currentIndex;
+                                console.log("Type index changed")
+                                columnRepeater.typeIndex[modelData] = typeBox.currentIndex;
                             }
                         }
 
@@ -124,7 +138,7 @@ Item {
                                 elide: Text.ElideRight
                             }
                             onActivated: {
-                                measuremodule.measureObjs[modelData].targetIndex = sourceBox.currentIndex;
+                                columnRepeater.sourceList[modelData] = sourceBox.currentIndex;
                             }
 
                             width: headerModel.get(1).cellWidth
@@ -136,7 +150,7 @@ Item {
                             topPadding: 15
                             color: ScopeSetting.signalColorList[sourceBox.currentIndex]
                             horizontalAlignment: Text.AlignHCenter
-                            text: measuremodule.measureObjs[modelData].value
+                            text:  columnRepeater.valueList[modelData]
                             font.pointSize: 13
                             font.bold: true
                         }
@@ -145,7 +159,7 @@ Item {
                             width: headerModel.get(3).cellWidth
                             checked: false
                             onClicked: {
-                                measuremodule.measureObjs[modelData].isEnabled = checked
+                                columnRepeater.enabledList[modelData] = checked
                             }
                         }
                     }
@@ -156,6 +170,17 @@ Item {
                         color: "#6C6F6F"
                     }
                 }
+            }
+
+            Connections {
+                target: dataSource
+                onDataProcessDone: {
+                    columnRepeater.valueList = newItems;
+                }
+            }
+
+            Component.onCompleted: {
+                dataSource.measureModule.setGuiSource(columnRepeater)
             }
         }
     }
