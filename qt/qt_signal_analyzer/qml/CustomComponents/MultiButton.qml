@@ -126,6 +126,10 @@ Item {
             }
         }
 
+        Component.onCompleted: {
+            currentIndex = currentSelection
+        }
+
         onActivated: {
             currentSelection = index;
             selectionChanged(button.items[index]);
