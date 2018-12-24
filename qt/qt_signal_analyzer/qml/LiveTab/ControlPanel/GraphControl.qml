@@ -55,11 +55,10 @@ Item {
                     buttonTextColor: modelData
                     buttonBorderColor: ScopeSetting.signalBorderColorList[index]
                     onNameChanged: {
-                        seriesNameChanged(numberID, newName)
-                        var newItems = currentSignalButton.items
-                        newItems[numberID] = newName
-                        currentSignalButton.items = newItems
-                        currentCursorButton.items = newItems
+                        seriesNameChanged(numberID, newName);
+                        var newItems = signalNames;
+                        newItems[numberID] = newName;
+                        signalNames = newItems;
                     }
                     onCheckChanged: {
                         seriesDisplayChanged(numberID, checkStatus)
@@ -82,7 +81,7 @@ Item {
                     text: "Selected Signal: "
                     buttonBorderColor: ScopeSetting.signalBorderColorList[currentSelection]
                     buttonTextColor: ScopeSetting.signalColorList[currentSelection]
-                    items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
+                    items: signalNames
                     currentSelection: 0
             }
 
@@ -103,7 +102,7 @@ Item {
                 sliderToMod: 20000
                 sliderDefaultValMod: 0
                 sliderTextColorMod: "#B0B5B4"
-                axisModMod: "x"
+                axisMod: "x"
                 }
                 
                 ListElement {
@@ -112,7 +111,7 @@ Item {
                 sliderToMod: 10
                 sliderDefaultValMod: 4
                 sliderTextColorMod: "#B0B5B4"
-                axisModMod: "y"
+                axisMod: "y"
                 }
                 
                 ListElement {
@@ -121,7 +120,7 @@ Item {
                 sliderToMod: 10
                 sliderDefaultValMod: 0
                 sliderTextColorMod: "#B0B5B4"
-                axisModMod: "y"
+                axisMod: "y"
                 }
             }
             Column {
