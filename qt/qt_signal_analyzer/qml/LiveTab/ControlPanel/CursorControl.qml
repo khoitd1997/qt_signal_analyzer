@@ -9,7 +9,7 @@ Item {
             id: cursorHeader
             width: parent.width
             displayText: "Cursor Settings"
-            anchors.topMargin: 10
+            anchors.topMargin: 1
             anchors.top: parent.top
             onIsClicked: {
                 isOn ? tabUp3.running = true : tabDown3.running = true
@@ -41,42 +41,137 @@ Item {
 
         MultiButton {
                 anchors.top: parent.top
-                id: currentCursorButton
+                id: cursorButton
                 text: "Cursor Target: "
                 buttonBorderColor: ScopeSetting.signalBorderColorList[currentSelection]
                 buttonTextColor: ScopeSetting.signalColorList[currentSelection]
-                items: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
+                items: signalNames
                 currentSelection: 0
         }
+
+        CheckBox {
+                anchors.left: cursorData.left
+                anchors.verticalCenter: cursorButton.verticalCenter
+                implicitHeight: 40
+                implicitWidth: 110
+
+                id: checkBox
+
+                checked: false
+
+
+                contentItem: Label {
+                    text: "Enabled"
+                    id: checkboxText
+                    anchors.top: checkBox.top
+                    anchors.left: checkBox.indicator.right
+                    anchors.right: checkBox.right
+                    anchors.bottom: checkBox.bottom
+
+                    topPadding: 0
+                    leftPadding: checkBox.spacing
+                    rightPadding: checkBox.spacing
+                    font.weight: Font.DemiBold
+                    verticalAlignment: Text.AlignVCenter
+
+                    color: checkBox.checked ? "#E2E8E7" : "#A7ACAB"
+
+                    background: Rectangle {
+                        x: checkBox.indicator.width + 5
+                        color: checkBox.hovered ? UIStyle.buttonBgHovered : UIStyle.buttonBgUnhovered
+                        border.color: "transparent"
+                    }
+                }
+
+                indicator: Rectangle {
+                    implicitWidth: 20
+                    implicitHeight: 20
+                    x: checkBox.leftPadding
+                    y: parent.height / 2 - height / 2
+                    radius: 4
+                    color: UIStyle.buttonBgHovered
+                    border.color: UIStyle.buttonBgUnhovered
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 4
+                        color: checkBox.checked ? "#D8DEDD" : UIStyle.buttonBgHovered
+                        visible: checkBox.checked
+                    }
+                }
+
+                background: Rectangle {
+                        radius: 4
+                        border.color: "#E2E8E7"
+                        border.width: checkBox.visualFocus ? 2 : 1
+                        color: checkBox.hovered ? UIStyle.buttonBgHovered : UIStyle.buttonBgUnhovered
+                }
+
+                onClicked: {
+                    if(checked) {
+                        cursorSwitch(true)
+                    } else {
+                        cursorSwitch(false)
+                    }
+                }
+            }
 
 
         Column {
             id: cursorControl
-            anchors.top: currentCursorButton.bottom
+            anchors.top: cursorButton.bottom
             anchors.topMargin: 0
             width: parent.width / 2
             height: childrenRect.height
 
+            ListModel {
+                id: cursorSliderModel
+
+                ListElement{
+                    cursorType: "x"
+                    cursorIndex: 0
+                    text: "Cursor X_A"
+                } 
+                ListElement{
+                    cursorType: "x"
+                    cursorIndex: 1
+                    text: "Cursor X_B"
+                }
+                ListElement{
+                    cursorType: "y"
+                    cursorIndex: 0
+                    text: "Cursor Y_A"
+                } 
+                ListElement{
+                    cursorType: "y"
+                    cursorIndex: 1
+                    text: "Cursor Y_B"
+                }
+            }
 
             Repeater {
-                model: ["Cursor X_A", "Cursor X_B", "Cursor Y_A", "Cursor Y_B"]
+                model: cursorSliderModel
                 SliderWithText {
                     sliderFrom: 0
                     sliderTo: 100
                     sliderDefaultVal: 50
-                    sliderText: modelData
+                    sliderText: text
                     sliderTextColor: "#B0B5B4"
                     sliderEnableColor: "#4D7AB5"
                     width: parent.width
                     onSliderMoved: {
+                    if(cursorButton.items[cursorButton.currentSelection] !== "None") {
+                        cursorType === "x" ? xCursorChanged(cursorIndex, newRange)
+                                           : yCursorChanged(cursorButton.currentSelection, cursorIndex, newRange)
                     }
+                        }
                 }
             }
         }
 
         Rectangle {
             id: cursorDivider
-            anchors.top: currentCursorButton.bottom
+            anchors.top: cursorButton.bottom
             anchors.topMargin: 0
             anchors.left: cursorControl.right
             anchors.leftMargin: 40
@@ -87,7 +182,7 @@ Item {
 
         Rectangle {
             id: cursorData
-            anchors.top: currentCursorButton.bottom
+            anchors.top: cursorButton.bottom
             anchors.topMargin: 0
             anchors.left: cursorDivider.right
             anchors.leftMargin: 40
@@ -96,13 +191,41 @@ Item {
             width: parent.width / 2
             height: childrenRect.height
             color: "transparent"
-            Rectangle {
+
+            property real xCursorDif : 0
+            property real yCursorA: 0
+            property real yCursorB: 0
+            property real yCursorDif: 0
+
+            Column {
                 Label {
                     font.pointSize: 13
                     font.bold: true
-                    text: "<font color='#B0B5B4'>X_B - X_A: </font> <font color='#78D1C5'>50</font>"
+                    text: "<font color='#B0B5B4'>X_B - X_A: </font> <font color='#78D1C5'>" + cursorData.xCursorDif + "</font>"
+                }
+                Label {
+                    font.pointSize: 13
+                    font.bold: true
+                    text: "<font color='#B0B5B4'>Y_A: </font> <font color='#78D1C5'>" + cursorData.yCursorA + "</font>"
+                }
+                Label {
+                    font.pointSize: 13
+                    font.bold: true
+                    text: "<font color='#B0B5B4'>Y_B: </font> <font color='#78D1C5'>" + cursorData.yCursorB + "</font>"
+                }
+                Label {
+                    font.pointSize: 13
+                    font.bold: true
+                    text: "<font color='#B0B5B4'>Y_B - Y_A: </font> <font color='#78D1C5'>" + cursorData.yCursorDif + "</font>"
                 }
             }
         }
+    }
+
+    function updateCursorData(xCursorDif, yCursorA, yCursorB) {
+        cursorData.xCursorDif = xCursorDif
+        cursorData.yCursorA = yCursorA
+        cursorData.yCursorB = yCursorB
+        cursorData.yCursorDif = yCursorB - yCursorA
     }
 }
