@@ -1,25 +1,35 @@
 <RCC>
     <qresource prefix="/">
         <file>./qml/main.qml</file>
-        <file>./qml/LiveTab/ControlPanel/ControlPanel.qml</file>
+
         <file>./qml/CustomComponents/MultiButton.qml</file>
-        <file>./qml/LiveTab/ScopeView/ScopeView.qml</file>
-        <file>./qml/CustomStyle/UIStyle.qml</file>
-        <file>./qml/CustomStyle/qmldir</file>
         <file>./qml/CustomComponents/CheckboxButton.qml</file>
-        <file>./qml/resources/down-arrow.png</file>
         <file>./qml/CustomComponents/CollapsibleSection.qml</file>
         <file>./qml/CustomComponents/SliderWithText.qml</file>
+        
         <file>./qml/CustomStyle/ScopeSetting.qml</file>
+        <file>./qml/CustomStyle/UIStyle.qml</file>
+        <file>./qml/CustomStyle/qmldir</file>
+
         <file>./qml/MainMenuBar/MainMenuBar.qml</file>
         <file>./qml/MainMenuBar/MainMenuObject.qml</file>
+        
         <file>./qml/BottomBar/BottomBar.qml</file>
-        <file>./qml/resources/live-icon.png</file>
         <file>./qml/SideBar/SideBar.qml</file>
+        
+        <file>./qml/resources/down-arrow.png</file>
+        <file>./qml/resources/live-icon.png</file>
         <file>./qml/resources/analytics.png</file>
         <file>./qml/resources/microchip.png</file>
+
+        <file>./qml/LiveTab/ScopeView/ScopeView.qml</file>
         <file>./qml/LiveTab/LiveTab.qml</file>
+
+        <file>./qml/LiveTab/ControlPanel/MathControl.qml</file>
+        <file>./qml/LiveTab/ControlPanel/ControlPanel.qml</file>
         <file>./qml/LiveTab/ControlPanel/CursorControl.qml</file>
         <file>./qml/LiveTab/ControlPanel/GraphControl.qml</file>
+        <file>./qml/LiveTab/ControlPanel/MeasureControl.qml</file>
+
     </qresource>
 </RCC>
