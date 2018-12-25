@@ -11,7 +11,9 @@ Rectangle {
     property string displayText: "Default Collapsible Header"
     signal isClicked(bool isOn)
     radius: 4
-    color: "#3A3A3A"
+    // color: "#3A3A3A"
+    color: "#363636"
+
     border.color: isTicked ? "#56825D" : "transparent"
 
     MouseArea {
