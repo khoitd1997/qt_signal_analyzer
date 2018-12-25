@@ -5,44 +5,38 @@
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QtMath>
 
-DataWorker::DataWorker(QReadWriteLock& dataLock, QList<QList<QPointF>*> rawData)
-  : dataLock(dataLock)
-  , rawData(rawData)
-{}
+static const uint pointsPerInc = 500;
 
-void
-DataWorker::startWork(void)
-{
-  QTimer* timer = new QTimer(this);
+DataWorker::DataWorker(QList<QList<QList<QPointF> *>> &newDataBuffer)
+    : totalBuffer(newDataBuffer.size()), newDataBuffer(newDataBuffer) {}
+
+void DataWorker::startWork(void) {
+  QTimer *timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(update()));
   timer->start(300);
 }
 
-void
-DataWorker::update(void)
-{
-  QWriteLocker locker(&dataLock);
+void DataWorker::update(void) {
   static unsigned long currLimit = 0;
-  currLimit += 1024;
+  currLimit += pointsPerInc;
   auto serieIndex = 0;
 
-  foreach (auto dataSerie, rawData) {
-    if (dataSerie->size() > storageThreshold * maxPoints) {
-      qDebug() << "Free elements" << endl;
-      dataSerie->erase(dataSerie->begin(),
-                       dataSerie->begin() + dataSerie->size() / 2);
-    }
-
-    for (auto j(currLimit); j < currLimit + 1024; j++) {
+  foreach (auto dataSerie, newDataBuffer[currBufferIndex]) {
+    for (auto j(currLimit); j < currLimit + pointsPerInc; j++) {
       qreal x(0);
       qreal y(0);
       y = qSin(M_PI / 50 * j) + 0.5 * (serieIndex + 1) +
           QRandomGenerator::global()->generateDouble();
       x = j;
       dataSerie->append(QPointF(x, y));
-      //    qDebug() << "Generating x: " << x << endl;
     }
+    // qDebug() << "Data Worker: Generating serie: " << serieIndex << endl;
     ++serieIndex;
   }
   emit newDataReady();
+
+  currBufferIndex =
+      (currBufferIndex == totalBuffer - 1) ? 0 : currBufferIndex + 1;
+  //   qDebug() << "Data Worker: Current buffer index: " << currBufferIndex <<
+  //   endl;
 }

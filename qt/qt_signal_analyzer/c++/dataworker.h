@@ -6,14 +6,13 @@
 #include <QObject>
 #include <QReadWriteLock>
 
-static const int maxPoints = 100000;
-static const double storageThreshold = 0.8;
+static const int NEW_POINTS_PER_EVENT = 1000;
 
 class DataWorker : public QObject
 {
   Q_OBJECT
 public:
-  explicit DataWorker(QReadWriteLock& dataLock, QList<QList<QPointF>*> rawData);
+  explicit DataWorker(QList<QList<QList<QPointF>*>>& newDataBuffer);
 
 signals:
   void newDataReady();
@@ -23,8 +22,10 @@ public slots:
   void update(void);
 
 private:
-  QReadWriteLock& dataLock;
-  QList<QList<QPointF>*> rawData;
+  const int totalBuffer;
+  int currBufferIndex = 0;
+
+  QList<QList<QList<QPointF>*>>& newDataBuffer;
 };
 
 #endif // DATAWORKER_H

@@ -40,7 +40,14 @@
 #include <QtCharts/QXYSeries>
 #include <QtCore/QObject>
 
+#include <QDebug>
+
+#include <QFile>
+#include <QTextStream>
+
+#include "dataworker.h"
 #include "graphdatamodule.h"
+#include "loggermodule.h"
 #include "measuremodule.h"
 
 QT_BEGIN_NAMESPACE
@@ -56,13 +63,17 @@ class DataSource : public QObject
     MeasureModule* measureModule READ measureModule NOTIFY measureModuleChanged)
   Q_PROPERTY(
     GraphDataModule* graphModule READ graphModule NOTIFY graphModuleChanged)
+  Q_PROPERTY(
+    LoggerModule* loggerModule READ loggerModule NOTIFY loggerModuleChanged)
 
 signals:
   void startWork();
   void startUpdate();
+  void startLoggerUpdate(int currBufferIndex_);
   void dataProcessDone();
   void measureModuleChanged();
   void graphModuleChanged();
+  void loggerModuleChanged();
 
 public:
   explicit DataSource(QObject* parent = nullptr);
@@ -74,22 +85,28 @@ public slots:
   void incrementFinished();
   MeasureModule* measureModule(void) const;
   GraphDataModule* graphModule(void) const;
+  LoggerModule* loggerModule(void) const;
 
 private:
-  MeasureModule* m_measureModule = nullptr;
-  GraphDataModule* m_graphModule = nullptr;
+  DataWorker* dataWorker_ = nullptr;
+  MeasureModule* measureModule_ = nullptr;
+  GraphDataModule* graphModule_ = nullptr;
+  LoggerModule* loggerModule_ = nullptr;
 
-  unsigned int totalFinished = 0;
-  QReadWriteLock dataLock;
+  uint totalFinished_ = 0;
+  //   QReadWriteLock dataLock;
   QMutex eventCounterLock;
   QEventLoop waitLoop;
 
-  bool graphDoneFinishedFlag = false;
+  QThread dataWorkerThread_;
+  QThread graphThread_;
+  QThread measureThread_;
+  QThread loggerThread_;
 
-  QThread dataThread;
-  QThread graphDataThread;
-  QThread measureDataThread;
-  QList<QList<QPointF>*> m_data;
+  static const int totalBuffer = 2;
+  int currBufferIndex_ = 0;
+  QList<QList<QPointF>*> allData_;
+  QList<QList<QList<QPointF>*>> newDataBuffer_;
 };
 
 #endif // DATASOURCE_H

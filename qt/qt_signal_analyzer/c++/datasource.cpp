@@ -40,106 +40,130 @@
 #include "dataworker.h"
 #include "graphdatamodule.h"
 
-static const auto totalSerie = 4;
-static const auto totalModule = 2;
+static const auto TOTAL_SERIES = 4;
+static const auto TOTAL_MODULE = 3;
+
+static const int MAX_TOTAL_POINTS = 100000;
+static const double STORAGE_THRESHOLD = 0.8;
 
 QT_CHARTS_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QAbstractSeries*)
-Q_DECLARE_METATYPE(QAbstractAxis*)
+Q_DECLARE_METATYPE(QAbstractSeries *)
+Q_DECLARE_METATYPE(QAbstractAxis *)
 
-DataSource::DataSource(QObject* parent)
-  : QObject(parent)
-  , m_measureModule(new MeasureModule(this->m_data))
-  , m_graphModule(new GraphDataModule(this->m_data))
+DataSource::DataSource(QObject *parent)
+    : QObject(parent), measureModule_(new MeasureModule(allData_)),
+      graphModule_(new GraphDataModule(allData_)),
+      loggerModule_(new LoggerModule(newDataBuffer_))
+
 {
-  qRegisterMetaType<QAbstractSeries*>();
-  qRegisterMetaType<QAbstractAxis*>();
+  qRegisterMetaType<QAbstractSeries *>();
+  qRegisterMetaType<QAbstractAxis *>();
 
-  for (auto i = 0; i < totalSerie; ++i) {
-    m_data.append(new QList<QPointF>());
-    m_data[i]->reserve(maxPoints);
+  for (auto i = 0; i < TOTAL_SERIES; ++i) {
+    allData_.append(new QList<QPointF>());
+    allData_[i]->reserve(MAX_TOTAL_POINTS);
   }
 
-  auto dataWorker = new DataWorker(dataLock, m_data);
-  dataWorker->moveToThread(&dataThread);
+  for (auto i = 0; i < totalBuffer; ++i) {
+    newDataBuffer_.append(QList<QList<QPointF> *>());
+    for (auto j = 0; j < TOTAL_SERIES; ++j) {
+      newDataBuffer_[i].append(new QList<QPointF>());
+      newDataBuffer_[i][j]->reserve(NEW_POINTS_PER_EVENT);
+    }
+  }
 
-  connect(&dataThread, &QThread::finished, dataWorker, &QObject::deleteLater);
-  connect(this, &DataSource::startWork, dataWorker, &DataWorker::startWork);
-  connect(
-    dataWorker, &DataWorker::newDataReady, this, &DataSource::processData);
+  dataWorker_ = new DataWorker(newDataBuffer_);
+  dataWorker_->moveToThread(&dataWorkerThread_);
 
-  dataThread.start();
+  connect(&dataWorkerThread_, &QThread::finished, dataWorker_,
+          &QObject::deleteLater);
+  connect(this, &DataSource::startWork, dataWorker_, &DataWorker::startWork);
+  connect(dataWorker_, &DataWorker::newDataReady, this,
+          &DataSource::processData);
+  dataWorkerThread_.start();
 
-  m_graphModule->moveToThread(&graphDataThread);
-  connect(this,
-          &DataSource::startUpdate,
-          m_graphModule,
+  graphModule_->moveToThread(&graphThread_);
+  connect(&graphThread_, &QThread::finished, graphModule_,
+          &QObject::deleteLater);
+  connect(this, &DataSource::startUpdate, graphModule_,
           &GraphDataModule::updateLineSeries);
-  connect(m_graphModule,
-          &GraphDataModule::graphDataFinished,
-          this,
+  connect(graphModule_, &GraphDataModule::graphDataFinished, this,
           &DataSource::incrementFinished);
-  graphDataThread.start();
+  graphThread_.start();
 
-  m_measureModule->moveToThread(&measureDataThread);
-  connect(this,
-          &DataSource::startUpdate,
-          m_measureModule,
+  measureModule_->moveToThread(&measureThread_);
+  connect(&measureThread_, &QThread::finished, measureModule_,
+          &QObject::deleteLater);
+  connect(this, &DataSource::startUpdate, measureModule_,
           &MeasureModule::updateMeasure);
-  connect(m_measureModule,
-          &MeasureModule::measureFinished,
-          this,
+  connect(measureModule_, &MeasureModule::measureFinished, this,
           &DataSource::incrementFinished);
-  measureDataThread.start();
+  measureThread_.start();
+
+  loggerModule_->moveToThread(&loggerThread_);
+  connect(&loggerThread_, &QThread::finished, loggerModule_,
+          &QObject::deleteLater);
+  connect(this, &DataSource::startLoggerUpdate, loggerModule_,
+          &LoggerModule::updateLogger);
+  connect(loggerModule_, &LoggerModule::loggerFinished, this,
+          &DataSource::incrementFinished);
+
+  loggerThread_.start();
 }
 
-DataSource::~DataSource()
-{
-  dataThread.quit();
-  dataThread.wait();
+DataSource::~DataSource() {
+  // TODO: add deallocation of resources
+  dataWorkerThread_.quit();
+  dataWorkerThread_.wait();
 }
 
-void
-DataSource::incrementFinished()
-{
-  QMutexLocker locker(&eventCounterLock);
-  ++totalFinished;
-  if (totalFinished == totalModule) {
-    totalFinished = 0;
-    qDebug() << "All module done" << endl;
+void DataSource::incrementFinished() {
+  //   QMutexLocker locker(&eventCounterLock);
+  ++totalFinished_;
+  if (totalFinished_ == TOTAL_MODULE) {
+    totalFinished_ = 0;
+    // qDebug() << "All module done" << endl;
     waitLoop.quit();
   }
 }
 
-void
-DataSource::start(void)
-{
-  emit startWork();
-}
+void DataSource::start(void) { emit startWork(); }
 
-void
-DataSource::processData(void)
-{
-  QReadLocker locker(&dataLock);
-  qDebug() << "Begin data processing" << endl;
+void DataSource::processData(void) {
+  // move fresh data to the list of all data and trim the list if necessary
+  for (auto i = 0; i < TOTAL_SERIES; ++i) {
+    *(allData_[i]) << *(newDataBuffer_[currBufferIndex_][i]);
+    if ((allData_[i])->size() > STORAGE_THRESHOLD * MAX_TOTAL_POINTS) {
+      //   qDebug() << "Free elements" << endl;
+      (allData_[i])
+          ->erase((allData_[i])->begin(),
+                  (allData_[i])->begin() + (allData_[i])->size() / 2);
+    }
+  }
+
+  // remove data points to prevent overfilling
+
+  //   QReadLocker locker(&dataLock);
+  //   qDebug() << "Begin data processing" << endl;
   emit startUpdate();
+  emit startLoggerUpdate(currBufferIndex_);
 
   waitLoop.exec(QEventLoop::ExcludeUserInputEvents |
                 QEventLoop::ExcludeSocketNotifiers);
 
-  qDebug() << "Event loop done" << endl;
+  //   qDebug() << "Event loop done" << endl;
   emit dataProcessDone();
+
+  for (auto i = 0; i < TOTAL_SERIES; ++i) {
+    newDataBuffer_[currBufferIndex_][i]->clear();
+  }
+  currBufferIndex_ =
+      (currBufferIndex_ == totalBuffer - 1) ? 0 : currBufferIndex_ + 1;
 }
 
-MeasureModule*
-DataSource::measureModule(void) const
-{
-  return m_measureModule;
-}
+MeasureModule *DataSource::measureModule(void) const { return measureModule_; }
 
-GraphDataModule*
-DataSource::graphModule(void) const
-{
-  return m_graphModule;
-}
+GraphDataModule *DataSource::graphModule(void) const { return graphModule_; }
+
+LoggerModule *DataSource::loggerModule(void) const { return loggerModule_; }

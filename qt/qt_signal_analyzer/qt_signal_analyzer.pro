@@ -17,9 +17,9 @@ SOURCES += \
         c++/main.cpp \
     c++/datasource.cpp \
     c++/measuremodule.cpp \
-    c++/measureobj.cpp \
     c++/dataworker.cpp \
-    c++/graphdatamodule.cpp
+    c++/graphdatamodule.cpp \
+    c++/loggermodule.cpp
 
 RESOURCES += qml.qrc
 
@@ -37,9 +37,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     c++/datasource.h \
     c++/measuremodule.h \
-    c++/measureobj.h \
     c++/dataworker.h \
-    c++/graphdatamodule.h
+    c++/graphdatamodule.h \
+    c++/loggermodule.h
 
 DISTFILES += \
     qmldir
