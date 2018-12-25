@@ -89,6 +89,7 @@ ApplicationWindow {
                 anchors.right: parent.right
                 anchors.leftMargin: sideBar.width + 2
                 anchors.left: parent.left
+        onActionStatusChanged: bottomBar.changeActionStatus(newActionStatus)
         }
     }
 
@@ -97,8 +98,9 @@ ApplicationWindow {
     }
 
     function changeTab(newTabIndex) {
-        tabList.children[tabList.currTabIndex].visible = false
-        tabList.children[newTabIndex].visible = true
-        tabList.currTabIndex = newTabIndex
+//        tabList.children[tabList.currTabIndex].visible = false
+//        tabList.children[newTabIndex].visible = true
+//        tabList.currTabIndex = newTabIndex
+        bottomBar.changeMode(newTabIndex)
     }
 }

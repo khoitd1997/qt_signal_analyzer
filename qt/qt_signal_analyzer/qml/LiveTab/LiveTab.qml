@@ -5,12 +5,14 @@ import "ControlPanel"
 import "ScopeView"
 
 Item {
+    signal actionStatusChanged(string newActionStatus);
     ControlPanel {
         id: controlPanel
         anchors.topMargin: 2
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
+//        anchors.right: scopeView.left
         width: parent.width / 3
 
         onAxisOffsetChanged: scopeView.changeAxisOffset(id, axisName, newOffset)
@@ -43,15 +45,15 @@ Item {
         }
     }
 
-    MathControl {
-        id: mathControl
-        width: parent.width
-        height: childrenRect.height
-        anchors.left: scopeView.left
-        anchors.leftMargin: 10
-        anchors.top: scopeView.bottom
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.topMargin: 1
-    }
+//    MathControl {
+//        id: mathControl
+//        width: parent.width
+//        height: childrenRect.height
+//        anchors.left: scopeView.left
+//        anchors.leftMargin: 10
+//        anchors.top: scopeView.bottom
+//        anchors.right: parent.right
+//        anchors.bottom: parent.bottom
+//        anchors.topMargin: 1
+//    }
 }

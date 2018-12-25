@@ -212,12 +212,13 @@ Item {
                 var urlStripped = (loggerSaveDialog.fileUrls.toString()+"").replace('file://', '');
                 console.log(urlStripped);
                 var res = dataSource.loggerModule.switchLogger(true, loggerButton.serieEnabledList, urlStripped, signalNames);
-            if(res === "") {
-                console.log("Empty string received");
-                loggerTimer.restart();
-                loggerButton.isRecording = !loggerButton.isRecording;
-            } else {
-                    console.log("Error: " + res);
+                
+                if(res === "") {
+                    actionStatusChanged("Logger Started")
+                    loggerTimer.restart();
+                    loggerButton.isRecording = !loggerButton.isRecording;
+                } else {
+                        actionStatusChanged("Error: " + res)
                 }
             }
         }
@@ -287,9 +288,9 @@ Item {
                         var res = dataSource.loggerModule.switchLogger(false, [], "", []);
 
                         if(res === "") {
-                            console.log("Empty string received");
+                            actionStatusChanged("Logger File Saved");
                         } else {
-                            console.log("Error: " + res);
+                            actionStatusChanged("Error: " + res);
                         }
                         loggerButton.isRecording = !loggerButton.isRecording;
                     }
@@ -335,7 +336,7 @@ Item {
                 anchors.left: parent.left
                 leftPadding: 8
                 color: "#E2E8E7"
-                text:"Total Points: " + loggerButton.totalPoint
+                text:"Total Data Points: " + loggerButton.totalPoint
             }
         }
 

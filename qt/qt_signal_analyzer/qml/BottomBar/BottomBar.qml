@@ -11,14 +11,8 @@ Rectangle {
     anchors.right: parent.right
     color:"#2E2D2C"
 
-    property string actionStatus: "Action Status Default"
-    property string currMode: "Current Mode Default"
+    property var modeList: ["Live Mode", "Analyis Mode", "Device Config Mode"]
     property string devicePath: "/dev/default"
-
-    onActionStatusChanged: {
-        actionStatusLabel.visible = true
-        fadeTimer.running = true
-    }
 
     Label {
         id: actionStatusLabel
@@ -26,7 +20,7 @@ Rectangle {
         rightPadding: 20
         anchors.right: modeLabel.left
 
-        text: bottomBar.actionStatus
+        text: ""
         color: "#BEBCB5"
         font.pointSize: 12
     }
@@ -36,7 +30,7 @@ Rectangle {
         rightPadding: 20
         anchors.right: deviceStatusLabel.left
 
-        text: bottomBar.currMode
+        text: modeList[0]
         color: "#BEBCB5"
         font.pointSize: 12
     }
@@ -58,5 +52,15 @@ Rectangle {
         onTriggered: {
             actionStatusLabel.visible = false
         }
+    }
+
+    function changeActionStatus(newActionStatus) {
+        actionStatusLabel.text = newActionStatus;
+        actionStatusLabel.visible = true
+        fadeTimer.running = true
+    }
+
+    function changeMode(newModeIndex) {
+            modeLabel.text = modeList[newModeIndex];
     }
 }

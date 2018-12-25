@@ -20,7 +20,7 @@ LoggerModule::switchLogger(const bool isRecording,
       }
     }
     if (enabledIndexList.size() <= 0) {
-      return "Error: No line serie to record";
+      return "No line serie to record";
     }
 
     this->dataFile = new QFile(destUrl);
@@ -35,8 +35,7 @@ LoggerModule::switchLogger(const bool isRecording,
       }
       isLogging = true;
     } else {
-      qDebug() << "Can't open file for read write";
-      return "Error: Can't open csv file for write";
+      return "Can't open csv file for write";
     }
   } else {
     isLogging = false;
