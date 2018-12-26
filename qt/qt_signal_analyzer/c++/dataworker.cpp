@@ -25,8 +25,8 @@ void DataWorker::update(void) {
     for (auto j(currLimit); j < currLimit + pointsPerInc; j++) {
       qreal x(0);
       qreal y(0);
-      y = qSin(M_PI / 50 * j) + 0.5 * (serieIndex + 1) +
-          QRandomGenerator::global()->generateDouble();
+      y = qSin(M_PI / 6000 * j) + 1.5;
+      //   + 0.5 * (serieIndex + 1);
       x = j;
       dataSerie->append(QPointF(x, y));
     }

@@ -43,8 +43,8 @@
 static const auto TOTAL_SERIES = 4;
 static const auto TOTAL_MODULE = 3;
 
-static const int MAX_TOTAL_POINTS = 100000;
-static const double STORAGE_THRESHOLD = 0.8;
+static const int MAX_TOTAL_POINTS = 1000000;
+static const double STORAGE_THRESHOLD = 0.95;
 
 QT_CHARTS_USE_NAMESPACE
 

@@ -106,7 +106,7 @@ Item {
                         ComboBox {
                             id: typeBox
                             width: headerModel.get(0).cellWidth
-                            model: ["Freq", "Period", "Max", "Min"]
+                            model: ["Freq", "Period", "Max", "Min", "Peak-Peak"]
                             contentItem: Text {
                                 font.pointSize: 13
                                 leftPadding: 10
@@ -153,7 +153,8 @@ Item {
                             topPadding: 15
                             color: ScopeSetting.cellColorList[modelData]
                             horizontalAlignment: Text.AlignHCenter
-                            text:  Math.round(columnRepeater.valueList[modelData] * 1000) / 1000
+                            text:  columnRepeater.valueList[modelData] < 0 ? "Inf" :
+                                Math.round(columnRepeater.valueList[modelData] * 1000) / 1000;
                             font.pointSize: 13
                             font.bold: true
                         }
