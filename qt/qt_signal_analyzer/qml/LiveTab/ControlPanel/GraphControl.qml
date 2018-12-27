@@ -6,6 +6,17 @@ import "../../CustomComponents"
 import "../../CustomStyle"
 
 Item {
+    id: root
+    // graph chooser section
+    signal seriesNameChanged(int id, string newName)
+    signal seriesDisplayChanged(int id, bool isOn)
+    signal axisRangeChanged(int id, string axisName, real newRange)
+    signal axisOffsetChanged(int id, string axisName, real newOffset)
+
+    Component.onCompleted: {
+        dataSource.graphModule.setGuiSource(root);
+    }
+
     CollapsibleSection {
             id: sectionHeader1
             width: parent.width
@@ -55,13 +66,13 @@ Item {
                     buttonTextColor: modelData
                     buttonBorderColor: ScopeSetting.signalBorderColorList[index]
                     onNameChanged: {
-                        seriesNameChanged(numberID, newName);
+                        root.seriesNameChanged(numberID, newName);
                         var newItems = signalNames;
                         newItems[numberID] = newName;
                         signalNames = newItems;
                     }
                     onCheckChanged: {
-                        seriesDisplayChanged(numberID, checkStatus)
+                        root.seriesDisplayChanged(numberID, checkStatus)
                     }
                 }
             }
@@ -91,6 +102,7 @@ Item {
                 sliderFromMod: 1
                 sliderToMod: 50000
                 sliderDefaultValMod: 25000
+                sliderType: "scaling"
                 sliderTextMod: "Change X Scaling:"
                 sliderTextColorMod: "#B0B5B4"
                 axisMod: "x"
@@ -98,6 +110,7 @@ Item {
                 
                 ListElement {
                 sliderTextMod: "Change X Offset: "
+                sliderType: "offset"
                 sliderFromMod: -20000
                 sliderToMod: 20000
                 sliderDefaultValMod: 0
@@ -107,6 +120,7 @@ Item {
                 
                 ListElement {
                 sliderTextMod: "Change Y Scaling:"
+                sliderType: "scaling"
                 sliderFromMod: 0.1
                 sliderToMod: 10
                 sliderDefaultValMod: 4
@@ -116,6 +130,7 @@ Item {
                 
                 ListElement {
                 sliderTextMod: "Change Y Offset: "
+                sliderType: "offset"
                 sliderFromMod: -10
                 sliderToMod: 10
                 sliderDefaultValMod: 0
@@ -138,7 +153,11 @@ Item {
                     sliderTextColor: sliderTextColorMod
                     width: section1.width
                     onSliderMoved: {
-                            axisRangeChanged(currentSignalButton.currentSelection, axisMod, newRange)
+                        if(sliderType === "scaling"){
+                            root.axisRangeChanged(currentSignalButton.currentSelection, axisMod, newRange);
+                        } else {
+                            root.axisOffsetChanged(currentSignalButton.currentSelection, axisMod, newRange);
+                        }
                     }
                 }
             }

@@ -51,12 +51,6 @@ Item {
     signal refreshRateChanged(variant rate);
     signal antialiasingEnabled(bool enabled)
 
-    // graph chooser section
-    signal seriesNameChanged(int id, string newName)
-    signal seriesDisplayChanged(int id, bool isOn)
-    signal axisRangeChanged(int id, string axisName, real newRange)
-    signal axisOffsetChanged(int id, string axisName, real newOffset)
-
     // cursor control
     signal xCursorChanged(int cursorIndex, real newPosition)
     signal yCursorChanged(int serieIndex, int cursorIndex, real newPosition)
@@ -74,13 +68,25 @@ Item {
         width: parent.width
         height: childrenRect.height
         anchors.top: graphControl.bottom
+        anchors.right: parent.right
         anchors.topMargin: 1
     }
 
     CursorControl {
         id: cursorControl
         width: parent.width
+        height: childrenRect.height
         anchors.top: measureControl.bottom
+        anchors.topMargin: 0
+        anchors.right: parent.right
+    }
+
+    MathControl {
+        id: mathControl
+        width: parent.width
+        height: childrenRect.height
+        anchors.top: cursorControl.bottom
+        anchors.topMargin: 2
         anchors.right: parent.right
     }
 }

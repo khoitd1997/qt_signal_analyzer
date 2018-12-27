@@ -15,12 +15,6 @@ Item {
 //        anchors.right: scopeView.left
         width: parent.width / 3
 
-        onAxisOffsetChanged: scopeView.changeAxisOffset(id, axisName, newOffset)
-        onAxisRangeChanged: scopeView.changeAxisRange(id, axisName, newRange)
-        onRefreshRateChanged: scopeView.changeRefreshRate(rate);
-        onAntialiasingEnabled: scopeView.antialiasing = enabled;
-        onSeriesNameChanged: scopeView.changeSeriesName(id, newName);
-        onSeriesDisplayChanged: scopeView.changeSeriesDisplay(id, isOn);
 
         // cursor stuffs
         onYCursorChanged: scopeView.changeYCursor(serieIndex, cursorIndex, newPosition)

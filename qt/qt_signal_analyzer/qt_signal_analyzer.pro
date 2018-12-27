@@ -19,7 +19,10 @@ SOURCES += \
     c++/measuremodule.cpp \
     c++/dataworker.cpp \
     c++/graphdatamodule.cpp \
-    c++/loggermodule.cpp
+    c++/loggermodule.cpp \
+    c++/mathmodule.cpp \
+    c++/scopemodule.cpp \
+    c++/scopeseriemodule.cpp
 
 RESOURCES += qml.qrc
 
@@ -39,7 +42,11 @@ HEADERS += \
     c++/measuremodule.h \
     c++/dataworker.h \
     c++/graphdatamodule.h \
-    c++/loggermodule.h
+    c++/loggermodule.h \
+    c++/mathmodule.h \
+    c++/scopemodule.h \
+    c++/scopeseriemodule.h \
+    c++/scopeconstants.h
 
 DISTFILES += \
     qmldir
