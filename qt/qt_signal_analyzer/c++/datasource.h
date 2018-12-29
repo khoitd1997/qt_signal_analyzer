@@ -41,14 +41,16 @@
 #include <QtCore/QObject>
 
 #include <QDebug>
-
 #include <QFile>
 #include <QTextStream>
 
 #include "dataworker.h"
 #include "graphdatamodule.h"
 #include "loggermodule.h"
+#include "mathmodule.h"
 #include "measuremodule.h"
+#include "scopemodule.h"
+#include "scopeseriemodule.h"
 
 QT_BEGIN_NAMESPACE
 class QQuickView;
@@ -59,54 +61,38 @@ QT_CHARTS_USE_NAMESPACE
 class DataSource : public QObject
 {
   Q_OBJECT
-  Q_PROPERTY(
-    MeasureModule* measureModule READ measureModule NOTIFY measureModuleChanged)
-  Q_PROPERTY(
-    GraphDataModule* graphModule READ graphModule NOTIFY graphModuleChanged)
-  Q_PROPERTY(
-    LoggerModule* loggerModule READ loggerModule NOTIFY loggerModuleChanged)
 
 signals:
   void startWork();
-  void startUpdate();
-  void startLoggerUpdate(int currBufferIndex_);
-  void dataProcessDone();
-  void measureModuleChanged();
-  void graphModuleChanged();
-  void loggerModuleChanged();
+  void startUpdate(void);
+  void startUpdateWithNewData(int curBufIndex);
 
 public:
   explicit DataSource(QObject* parent = nullptr);
   ~DataSource();
+  void prepNewModule(QObject* scopeModule,
+                     QThread* moduleThread,
+                     const bool needNewData);
+
+  QReadWriteLock allDataLock_;
+  QList<QList<QPointF>*> allData_;
+  QList<QReadWriteLock*> newDataLock_;
+  QList<QList<QList<QPointF>*>> newDataBuffer_;
 
 public slots:
   void start(void);
-  void processData(void);
-  void incrementFinished();
-  MeasureModule* measureModule(void) const;
-  GraphDataModule* graphModule(void) const;
-  LoggerModule* loggerModule(void) const;
+  void processData(const int currBufIndex);
 
 private:
   DataWorker* dataWorker_ = nullptr;
-  MeasureModule* measureModule_ = nullptr;
-  GraphDataModule* graphModule_ = nullptr;
-  LoggerModule* loggerModule_ = nullptr;
 
   uint totalFinished_ = 0;
-  //   QReadWriteLock dataLock;
   QMutex eventCounterLock;
   QEventLoop waitLoop;
 
   QThread dataWorkerThread_;
-  QThread graphThread_;
-  QThread measureThread_;
-  QThread loggerThread_;
 
   static const int totalBuffer = 2;
-  int currBufferIndex_ = 0;
-  QList<QList<QPointF>*> allData_;
-  QList<QList<QList<QPointF>*>> newDataBuffer_;
 };
 
 #endif // DATASOURCE_H

@@ -29,6 +29,8 @@
 
 #include "datasource.h"
 #include "graphdatamodule.h"
+#include "loggermodule.h"
+#include "mathmodule.h"
 #include "measuremodule.h"
 
 #include <QApplication>
@@ -52,29 +54,44 @@ main(int argc, char* argv[])
   QApplication app(argc, argv);
   QQuickStyle::setStyle("Material");
   QQuickStyle::setFallbackStyle("Material");
-  //  qDebug() << "All Themes: " << QQuickStyle::availableStyles();
   QQmlApplicationEngine engine;
   DataSource dataSource(&engine);
 
   QThread graphThread;
   GraphDataModule graphModule(dataSource.allData_, &dataSource.allDataLock_);
-  dataSource.prepNewModule(&graphModule, &graphThread);
-
-  //  MeasureModule measuremodule;
-  //   qmlRegisterUncreatableType<MeasureModule>(
-  //       "MeasureModule", 1, 0, "MeasureModule",
-  //       "Measure Module is always instantiated in c++ code");
-  //   qmlRegisterUncreatableType<DataSource>(
-  //       "DataSource", 1, 0, "DataSource",
-  //       "Data Source is always instantiated in c++ code");
-  //  qmlRegisterType<MeasureModule>("MeasureModule", 1, 0, "MeasureModule");
-  //  qmlRegisterType<DataSource>("DataSource", 1, 0, "DataSource");
-
+  dataSource.prepNewModule(&graphModule, &graphThread, false);
   qmlRegisterSingletonType<GraphDataModule>("Qt.analyzer.graphModule",
                                             1,
                                             0,
                                             "GraphModule",
                                             GraphDataModule::singletonProvider);
+
+  QThread mathThread;
+  MathModule mathModule(dataSource.allData_, &dataSource.allDataLock_);
+  dataSource.prepNewModule(&mathModule, &mathThread, false);
+  qmlRegisterSingletonType<MathModule>("Qt.analyzer.mathModule",
+                                       1,
+                                       0,
+                                       "MathModule",
+                                       MathModule::singletonProvider);
+
+  QThread loggerThread;
+  LoggerModule loggerModule(dataSource.newDataBuffer_, dataSource.newDataLock_);
+  dataSource.prepNewModule(&loggerModule, &loggerThread, true);
+  qmlRegisterSingletonType<LoggerModule>("Qt.analyzer.loggerModule",
+                                         1,
+                                         0,
+                                         "LoggerModule",
+                                         LoggerModule::singletonProvider);
+
+  QThread measureThread;
+  MeasureModule measureModule(dataSource.allData_, &dataSource.allDataLock_);
+  dataSource.prepNewModule(&measureModule, &measureThread, false);
+  qmlRegisterSingletonType<MeasureModule>("Qt.analyzer.measureModule",
+                                          1,
+                                          0,
+                                          "MeasureModule",
+                                          MeasureModule::singletonProvider);
 
   engine.rootContext()->setContextProperty("dataSource", &dataSource);
 

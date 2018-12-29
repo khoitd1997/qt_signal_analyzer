@@ -37,6 +37,8 @@ import "Cursor.js" as Cursor
 import "Axis.js" as Axis
 
 import Qt.analyzer.graphModule 1.0
+import Qt.analyzer.mathModule 1.0
+
 
 ChartView {
     id: chartView
@@ -69,8 +71,9 @@ ChartView {
             openGL = false
         }
 
-        GraphModule.addSerie(serieList);
-        GraphModule.setGuiSource(chartView)
+        GraphModule.addSeries(serieList);
+        GraphModule.setGuiSource(chartView);
+        MathModule.addSeries(mathSerieList);
         dataSource.start();
     }
 
@@ -220,7 +223,7 @@ ChartView {
         name: "Math 0"
         axisX: ValueAxis { visible: false; max: xAxis.max; min: xAxis.min; }
 
-        axisY: ValueAxis {visible: false; max: 5; min: -5;}
+        axisY: ValueAxis {visible: false; max: 6; min: -6;}
         color: ScopeSetting.cellColorList[0]
         useOpenGL: chartView.openGL
     }
@@ -231,7 +234,7 @@ ChartView {
         name: "Math 1"
         axisX: ValueAxis { visible: false; max: xAxis.max; min: xAxis.min; }
 
-        axisY: ValueAxis { visible: false; max: 5; min: -5; }
+        axisY: ValueAxis { visible: false; max: 6; min: -6; }
         color: ScopeSetting.cellColorList[1]
         useOpenGL: chartView.openGL
     }

@@ -44,17 +44,23 @@ Item {
 
     property var signalNames: ["Signal 0", "Signal 1", "Signal 2", "Signal 3"]
 
-    property real yCursorA : 0
-
-    //    property alias antialiasButton: antialiasButton
     signal animationsEnabled(bool enabled)
     signal refreshRateChanged(variant rate);
     signal antialiasingEnabled(bool enabled)
 
-    // cursor control
-    signal xCursorChanged(int cursorIndex, real newPosition)
-    signal yCursorChanged(int serieIndex, int cursorIndex, real newPosition)
-    signal cursorSwitch(bool isOn)
+    // graph chooser section
+    signal axisRangeChanged(int id, string axisName, real newRange)
+    signal axisOffsetChanged(int id, string axisName, real newOffset)
+
+    // cursor stuffs
+    signal cursorXChanged(int cursorIndex, real newPosition)
+    signal cursorYChanged(int serieIndex, int cursorIndex, real newPosition)
+    signal cursorDisplayChanged(bool isOn)
+
+    property real xCursorDif : 0
+    property real yCursorA: 0
+    property real yCursorB: 0
+    property real yCursorDif: 0
 
     GraphControl {
         id: graphControl

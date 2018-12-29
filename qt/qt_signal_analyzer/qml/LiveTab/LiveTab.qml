@@ -12,14 +12,18 @@ Item {
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-//        anchors.right: scopeView.left
         width: parent.width / 3
 
+        // graph chooser stuffs
+        onAxisOffsetChanged: scopeView.changeAxisOffset(id, axisName, newOffset)
+        onAxisRangeChanged: scopeView.changeAxisRange(id, axisName, newRange)
+        onRefreshRateChanged: scopeView.changeRefreshRate(rate);
+        onAntialiasingEnabled: scopeView.antialiasing = enabled;
 
         // cursor stuffs
-        onYCursorChanged: scopeView.changeYCursor(serieIndex, cursorIndex, newPosition)
-        onXCursorChanged: scopeView.changeXCursor(cursorIndex, newPosition)
-        onCursorSwitch: scopeView.cursorSwitch(isOn)
+        onCursorYChanged: scopeView.changeYCursor(serieIndex, cursorIndex, newPosition)
+        onCursorXChanged: scopeView.changeXCursor(cursorIndex, newPosition)
+        onCursorDisplayChanged: scopeView.cursorDisplayChanged(isOn)
     }
 
     ScopeView {
@@ -30,6 +34,13 @@ Item {
         anchors.right: parent.right
         anchors.left: controlPanel.right
         height: parent.height * 0.8
+
+        onNewCursorData: {
+            controlPanel.xCursorDif = Math.round(xCursorDif * 10)/ 10;
+            controlPanel.yCursorA = Math.round(yCursorA* 10)/ 10;
+            controlPanel.yCursorB = Math.round(yCursorB* 10)/ 10;
+            controlPanel.yCursorDif = Math.round(yCursorDif* 10)/ 10;
+        }
 
         onOpenGLSupportedChanged: {
             if (!openGLSupported) {

@@ -31,7 +31,7 @@ public slots:
 
   void changeSerieName(const int serieIndex, const QString newName);
   void changeSerieDisplay(const int serieIndex, const bool isOn);
-  void addSerie(QVariantList series);
+  void addSeries(QVariantList series);
 
 private:
   static GraphDataModule* singleton;

@@ -6,26 +6,29 @@
 #include <QObject>
 #include <QReadWriteLock>
 
-static const int NEW_POINTS_PER_EVENT = 1000;
+#include "scopeconstants.h"
 
-class DataWorker : public QObject
-{
+class DataWorker : public QObject {
   Q_OBJECT
 public:
-  explicit DataWorker(QList<QList<QList<QPointF>*>>& newDataBuffer);
+  explicit DataWorker(QList<QList<QList<QPointF> *>> &newDataBuffer,
+                      QList<QReadWriteLock *> newDataLock);
 
 signals:
-  void newDataReady();
+  void newDataReady(int curBufIndex);
 
 public slots:
   void startWork(void);
   void update(void);
 
 private:
-  const int totalBuffer;
-  int currBufferIndex = 0;
+  void incrementBufIndex(void);
 
-  QList<QList<QList<QPointF>*>>& newDataBuffer;
+  const int totalBuffer;
+  int curBufIndex_ = 0;
+
+  QList<QReadWriteLock *> newDataLock_;
+  QList<QList<QList<QPointF> *>> &newDataBuffer_;
 };
 
 #endif // DATAWORKER_H

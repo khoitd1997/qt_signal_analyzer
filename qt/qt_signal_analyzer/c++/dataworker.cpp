@@ -5,38 +5,40 @@
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QtMath>
 
-static const uint pointsPerInc = 500;
-
-DataWorker::DataWorker(QList<QList<QList<QPointF> *>> &newDataBuffer)
-    : totalBuffer(newDataBuffer.size()), newDataBuffer(newDataBuffer) {}
+DataWorker::DataWorker(QList<QList<QList<QPointF> *>> &newDataBuffer,
+                       QList<QReadWriteLock *> newDataLock)
+    : totalBuffer(newDataBuffer.size()), newDataLock_(newDataLock),
+      newDataBuffer_(newDataBuffer) {}
 
 void DataWorker::startWork(void) {
   QTimer *timer = new QTimer(this);
   connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-  timer->start(300);
+  timer->start(400);
+}
+
+void DataWorker::incrementBufIndex(void) {
+  curBufIndex_ = (curBufIndex_ == totalBuffer - 1) ? 0 : curBufIndex_ + 1;
 }
 
 void DataWorker::update(void) {
-  static unsigned long currLimit = 0;
-  currLimit += pointsPerInc;
-  auto serieIndex = 0;
+  static int currLimit = 0;
+  currLimit += kNewPointsPerTransfer;
+  auto serieIndex = 1;
 
-  foreach (auto dataSerie, newDataBuffer[currBufferIndex]) {
-    for (auto j(currLimit); j < currLimit + pointsPerInc; j++) {
-      qreal x(0);
-      qreal y(0);
-      y = qSin(M_PI / 6000 * j) + 1.5;
-      //   + 0.5 * (serieIndex + 1);
-      x = j;
-      dataSerie->append(QPointF(x, y));
+  while (!(newDataLock_[curBufIndex_]->tryLockForWrite(0))) {
+    incrementBufIndex();
+  }
+
+  foreach (auto dataSerie, newDataBuffer_[curBufIndex_]) {
+    for (auto j(currLimit); j < currLimit + kNewPointsPerTransfer; j++) {
+      qreal y = qSin(M_PI / (50 * serieIndex) * j) + 1.5;
+      qreal x = j;
+      dataSerie->operator[](j - currLimit) = QPointF(x, y);
     }
-    // qDebug() << "Data Worker: Generating serie: " << serieIndex << endl;
     ++serieIndex;
   }
-  emit newDataReady();
 
-  currBufferIndex =
-      (currBufferIndex == totalBuffer - 1) ? 0 : currBufferIndex + 1;
-  //   qDebug() << "Data Worker: Current buffer index: " << currBufferIndex <<
-  //   endl;
+  newDataLock_[curBufIndex_]->unlock();
+  emit newDataReady(curBufIndex_);
+  incrementBufIndex();
 }

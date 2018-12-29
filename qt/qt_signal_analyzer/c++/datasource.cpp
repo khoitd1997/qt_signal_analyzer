@@ -39,131 +39,100 @@
 
 #include "dataworker.h"
 #include "graphdatamodule.h"
+#include "scopeconstants.h"
 
-static const auto TOTAL_SERIES = 4;
-static const auto TOTAL_MODULE = 3;
-
-static const int MAX_TOTAL_POINTS = 1000000;
-static const double STORAGE_THRESHOLD = 0.95;
+static const auto kTotalSeries = 4;
 
 QT_CHARTS_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QAbstractSeries *)
-Q_DECLARE_METATYPE(QAbstractAxis *)
+Q_DECLARE_METATYPE(QAbstractSeries*)
+Q_DECLARE_METATYPE(QAbstractAxis*)
 
-DataSource::DataSource(QObject *parent)
-    : QObject(parent), measureModule_(new MeasureModule(allData_)),
-      graphModule_(new GraphDataModule(allData_)),
-      loggerModule_(new LoggerModule(newDataBuffer_))
-
+DataSource::DataSource(QObject* parent)
+  : QObject(parent)
 {
-  qRegisterMetaType<QAbstractSeries *>();
-  qRegisterMetaType<QAbstractAxis *>();
+  qRegisterMetaType<QAbstractSeries*>();
+  qRegisterMetaType<QAbstractAxis*>();
 
-  for (auto i = 0; i < TOTAL_SERIES; ++i) {
+  for (auto i = 0; i < kTotalSeries; ++i) {
     allData_.append(new QList<QPointF>());
-    allData_[i]->reserve(MAX_TOTAL_POINTS);
+    allData_[i]->reserve(kMaxTotalPoints);
   }
 
   for (auto i = 0; i < totalBuffer; ++i) {
-    newDataBuffer_.append(QList<QList<QPointF> *>());
-    for (auto j = 0; j < TOTAL_SERIES; ++j) {
+    newDataBuffer_.append(QList<QList<QPointF>*>());
+    newDataLock_.append(new QReadWriteLock());
+    for (auto j = 0; j < kTotalSeries; ++j) {
       newDataBuffer_[i].append(new QList<QPointF>());
-      newDataBuffer_[i][j]->reserve(NEW_POINTS_PER_EVENT);
+      newDataBuffer_[i][j]->reserve(kNewPointsPerTransfer);
+      for (auto k = 0; k < kNewPointsPerTransfer; ++k) {
+        newDataBuffer_[i][j]->append(QPointF(5, 5));
+      }
     }
   }
 
-  dataWorker_ = new DataWorker(newDataBuffer_);
+  dataWorker_ = new DataWorker(newDataBuffer_, newDataLock_);
   dataWorker_->moveToThread(&dataWorkerThread_);
 
-  connect(&dataWorkerThread_, &QThread::finished, dataWorker_,
-          &QObject::deleteLater);
+  connect(
+    &dataWorkerThread_, &QThread::finished, dataWorker_, &QObject::deleteLater);
   connect(this, &DataSource::startWork, dataWorker_, &DataWorker::startWork);
-  connect(dataWorker_, &DataWorker::newDataReady, this,
-          &DataSource::processData);
+  connect(
+    dataWorker_, &DataWorker::newDataReady, this, &DataSource::processData);
   dataWorkerThread_.start();
-
-  graphModule_->moveToThread(&graphThread_);
-  connect(&graphThread_, &QThread::finished, graphModule_,
-          &QObject::deleteLater);
-  connect(this, &DataSource::startUpdate, graphModule_,
-          &GraphDataModule::updateLineSeries);
-  connect(graphModule_, &GraphDataModule::graphDataFinished, this,
-          &DataSource::incrementFinished);
-  graphThread_.start();
-
-  measureModule_->moveToThread(&measureThread_);
-  connect(&measureThread_, &QThread::finished, measureModule_,
-          &QObject::deleteLater);
-  connect(this, &DataSource::startUpdate, measureModule_,
-          &MeasureModule::updateMeasure);
-  connect(measureModule_, &MeasureModule::measureFinished, this,
-          &DataSource::incrementFinished);
-  measureThread_.start();
-
-  loggerModule_->moveToThread(&loggerThread_);
-  connect(&loggerThread_, &QThread::finished, loggerModule_,
-          &QObject::deleteLater);
-  connect(this, &DataSource::startLoggerUpdate, loggerModule_,
-          &LoggerModule::updateLogger);
-  connect(loggerModule_, &LoggerModule::loggerFinished, this,
-          &DataSource::incrementFinished);
-
-  loggerThread_.start();
 }
 
-DataSource::~DataSource() {
+void
+DataSource::prepNewModule(QObject* scopeModule,
+                          QThread* moduleThread,
+                          const bool needNewData)
+{
+  scopeModule->moveToThread(moduleThread);
+  connect(moduleThread, &QThread::finished, scopeModule, &QObject::deleteLater);
+  if (needNewData) {
+    connect(this,
+            SIGNAL(startUpdateWithNewData(int)),
+            scopeModule,
+            SLOT(updateModule(int)));
+  } else {
+    connect(this, SIGNAL(startUpdate()), scopeModule, SLOT(updateModule()));
+  }
+  moduleThread->start();
+}
+
+DataSource::~DataSource()
+{
   // TODO: add deallocation of resources
   dataWorkerThread_.quit();
   dataWorkerThread_.wait();
 }
 
-void DataSource::incrementFinished() {
-  //   QMutexLocker locker(&eventCounterLock);
-  ++totalFinished_;
-  if (totalFinished_ == TOTAL_MODULE) {
-    totalFinished_ = 0;
-    // qDebug() << "All module done" << endl;
-    waitLoop.quit();
-  }
+void
+DataSource::start(void)
+{
+  emit startWork();
 }
 
-void DataSource::start(void) { emit startWork(); }
-
-void DataSource::processData(void) {
+void
+DataSource::processData(const int curBufIndex)
+{
   // move fresh data to the list of all data and trim the list if necessary
-  for (auto i = 0; i < TOTAL_SERIES; ++i) {
-    *(allData_[i]) << *(newDataBuffer_[currBufferIndex_][i]);
-    if ((allData_[i])->size() > STORAGE_THRESHOLD * MAX_TOTAL_POINTS) {
-      //   qDebug() << "Free elements" << endl;
-      (allData_[i])
+  {
+    QWriteLocker lock(&allDataLock_);
+    QReadLocker readLock(newDataLock_[curBufIndex]);
+    for (auto i = 0; i < kTotalSeries; ++i) {
+      (allData_[i])->append(*(newDataBuffer_[curBufIndex][i]));
+
+      //       remove data points to prevent overfilling
+      if ((allData_[i])->size() > kStorageThreshold * kMaxTotalPoints) {
+        //   qDebug() << "Free elements" << endl;
+        (allData_[i])
           ->erase((allData_[i])->begin(),
                   (allData_[i])->begin() + (allData_[i])->size() / 2);
+      }
     }
   }
 
-  // remove data points to prevent overfilling
-
-  //   QReadLocker locker(&dataLock);
-  //   qDebug() << "Begin data processing" << endl;
   emit startUpdate();
-  emit startLoggerUpdate(currBufferIndex_);
-
-  waitLoop.exec(QEventLoop::ExcludeUserInputEvents |
-                QEventLoop::ExcludeSocketNotifiers);
-
-  //   qDebug() << "Event loop done" << endl;
-  emit dataProcessDone();
-
-  for (auto i = 0; i < TOTAL_SERIES; ++i) {
-    newDataBuffer_[currBufferIndex_][i]->clear();
-  }
-  currBufferIndex_ =
-      (currBufferIndex_ == totalBuffer - 1) ? 0 : currBufferIndex_ + 1;
+  emit startUpdateWithNewData(curBufIndex);
 }
-
-MeasureModule *DataSource::measureModule(void) const { return measureModule_; }
-
-GraphDataModule *DataSource::graphModule(void) const { return graphModule_; }
-
-LoggerModule *DataSource::loggerModule(void) const { return loggerModule_; }

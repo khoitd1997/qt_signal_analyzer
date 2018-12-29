@@ -5,6 +5,8 @@ import "../../CustomComponents"
 import "../../CustomStyle"
 
 Item {
+    id: root 
+
     CollapsibleSection {
             id: cursorHeader
             width: parent.width
@@ -109,9 +111,9 @@ Item {
 
                 onClicked: {
                     if(checked) {
-                        cursorSwitch(true)
+                        cursorDisplayChanged(true)
                     } else {
-                        cursorSwitch(false)
+                        cursorDisplayChanged(false)
                     }
                 }
             }
@@ -160,11 +162,11 @@ Item {
                     sliderEnableColor: "#4D7AB5"
                     width: parent.width
                     onSliderMoved: {
-                    if(cursorButton.items[cursorButton.currentSelection] !== "None") {
-                        cursorType === "x" ? xCursorChanged(cursorIndex, newRange)
-                                           : yCursorChanged(cursorButton.currentSelection, cursorIndex, newRange)
-                    }
+                        if(cursorButton.items[cursorButton.currentSelection] !== "None") {
+                            cursorType === "x" ? cursorXChanged(cursorIndex, newRange)
+                                               : cursorYChanged(cursorButton.currentSelection, cursorIndex, newRange)
                         }
+                    }
                 }
             }
         }
@@ -192,40 +194,28 @@ Item {
             height: childrenRect.height
             color: "transparent"
 
-            property real xCursorDif : 0
-            property real yCursorA: 0
-            property real yCursorB: 0
-            property real yCursorDif: 0
-
             Column {
                 Label {
                     font.pointSize: 13
                     font.bold: true
-                    text: "<font color='#B0B5B4'>X_B - X_A: </font> <font color='#78D1C5'>" + cursorData.xCursorDif + "</font>"
+                    text: "<font color='#B0B5B4'>X_B - X_A: </font> <font color='#78D1C5'>" + xCursorDif + "</font>"
                 }
                 Label {
                     font.pointSize: 13
                     font.bold: true
-                    text: "<font color='#B0B5B4'>Y_A: </font> <font color='#78D1C5'>" + cursorData.yCursorA + "</font>"
+                    text: "<font color='#B0B5B4'>Y_A: </font> <font color='#78D1C5'>" + yCursorA + "</font>"
                 }
                 Label {
                     font.pointSize: 13
                     font.bold: true
-                    text: "<font color='#B0B5B4'>Y_B: </font> <font color='#78D1C5'>" + cursorData.yCursorB + "</font>"
+                    text: "<font color='#B0B5B4'>Y_B: </font> <font color='#78D1C5'>" + yCursorB + "</font>"
                 }
                 Label {
                     font.pointSize: 13
                     font.bold: true
-                    text: "<font color='#B0B5B4'>Y_B - Y_A: </font> <font color='#78D1C5'>" + cursorData.yCursorDif + "</font>"
+                    text: "<font color='#B0B5B4'>Y_B - Y_A: </font> <font color='#78D1C5'>" + yCursorDif + "</font>"
                 }
             }
         }
-    }
-
-    function updateCursorData(xCursorDif, yCursorA, yCursorB) {
-        cursorData.xCursorDif = xCursorDif
-        cursorData.yCursorA = yCursorA
-        cursorData.yCursorB = yCursorB
-        cursorData.yCursorDif = yCursorB - yCursorA
     }
 }

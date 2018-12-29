@@ -2,16 +2,28 @@
 
 #include "loggermodule.h"
 
-LoggerModule::LoggerModule(QList<QList<QList<QPointF>*>>& newDataBuffer)
-  : newDataBuffer(newDataBuffer)
-{}
+LoggerModule *LoggerModule::singleton = nullptr;
 
-QString
-LoggerModule::switchLogger(const bool isRecording,
-                           const QVariant enabledList,
-                           const QString destUrl,
-                           const QVariant nameList)
-{
+LoggerModule::LoggerModule(QList<QList<QList<QPointF> *>> &newDataBuffer,
+                           QList<QReadWriteLock *> newDataLock)
+    : newDataBuffer(newDataBuffer), newDataLock_(newDataLock) {
+  LoggerModule::singleton = this;
+}
+
+QObject *LoggerModule::singletonProvider(QQmlEngine *engine,
+                                         QJSEngine *scriptEngine) {
+  Q_UNUSED(engine)
+  Q_UNUSED(scriptEngine)
+
+  return LoggerModule::singleton;
+}
+
+QString LoggerModule::switchLogger(const bool isRecording,
+                                   const QVariant enabledList,
+                                   const QString destUrl,
+                                   const QVariant nameList) {
+  QMutexLocker enabledListLock(&enabledListMutex);
+
   if (isRecording) {
     auto tempEnabledList = enabledList.toList();
     for (auto i = 0; i < tempEnabledList.size(); ++i) {
@@ -19,6 +31,7 @@ LoggerModule::switchLogger(const bool isRecording,
         enabledIndexList.append(i);
       }
     }
+
     if (enabledIndexList.size() <= 0) {
       return "No line serie to record";
     }
@@ -48,35 +61,36 @@ LoggerModule::switchLogger(const bool isRecording,
   return "";
 }
 
-void
-LoggerModule::setGuiSource(QObject* measureGUI)
-{
+void LoggerModule::setGuiSource(QObject *loggerGui) {
   qDebug() << "logger gui element updated" << endl;
-  this->guiObj = measureGUI;
+  connect(this, SIGNAL(totalPointChanged(QVariant)), loggerGui,
+          SLOT(changeTotalPoint(QVariant)));
 }
 
-void
-LoggerModule::updateLogger(int currBufferIndex)
-{
+void LoggerModule::updateModule(int currBufIndex) {
   if (isLogging) {
+    QMutexLocker enabledListLock(&enabledListMutex);
+    QReadLocker newDataLock(newDataLock_[currBufIndex]);
+
     auto firstIndex = enabledIndexList.first();
-    QList<QList<QPointF>*>& currBuffer = newDataBuffer[currBufferIndex];
+    QList<QList<QPointF> *> &currBuffer = newDataBuffer[currBufIndex];
 
     for (auto pointIndex = 0; pointIndex < currBuffer[firstIndex]->size();
          ++pointIndex) {
       // record time value
       *(dataStream) << "\n" << currBuffer[firstIndex]->at(pointIndex).x();
+
       for (auto serieIndex = 0; serieIndex < enabledIndexList.size();
            ++serieIndex) {
         // record y value for each of the enabled serie
         *(dataStream)
-          << "\t"
-          << currBuffer[enabledIndexList[serieIndex]]->at(pointIndex).y();
+            << "\t"
+            << currBuffer[enabledIndexList[serieIndex]]->at(pointIndex).y();
         ++totalPoint; // TODO: may be make this more efficient
       }
     }
-    guiObj->setProperty("totalPoint", QVariant(totalPoint));
+    emit totalPointChanged(QVariant(totalPoint));
   }
-  //  qDebug() << "Logger done updating" << endl;
-  emit loggerFinished();
+
+  //   qDebug() << "Emitted Logger done updating" << endl;
 }

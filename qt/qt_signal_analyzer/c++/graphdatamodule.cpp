@@ -4,57 +4,44 @@
 #include <QValueAxis>
 #include <QtDebug>
 
-GraphDataModule* GraphDataModule::singleton = nullptr;
+GraphDataModule *GraphDataModule::singleton = nullptr;
 
-GraphDataModule::GraphDataModule(QList<QList<QPointF>*>& allData,
-                                 QReadWriteLock* allDataLock)
-  : allDataLock_(allDataLock)
-  , allData_(allData)
-{
+GraphDataModule::GraphDataModule(QList<QList<QPointF> *> &allData,
+                                 QReadWriteLock *allDataLock)
+    : allDataLock_(allDataLock), allData_(allData) {
   GraphDataModule::singleton = this;
 }
 
-QObject*
-GraphDataModule::singletonProvider(QQmlEngine* engine, QJSEngine* scriptEngine)
-{
+QObject *GraphDataModule::singletonProvider(QQmlEngine *engine,
+                                            QJSEngine *scriptEngine) {
   Q_UNUSED(engine)
   Q_UNUSED(scriptEngine)
 
   return GraphDataModule::singleton;
 }
 
-void
-GraphDataModule::setGuiSource(QObject* graphGUI)
-{
+void GraphDataModule::setGuiSource(QObject *graphGUI) {
   guiObj_ = graphGUI;
   connect(this, SIGNAL(graphDataFinished()), guiObj_, SLOT(updateGraphs()));
 }
 
-void
-GraphDataModule::addSerie(QVariantList series)
-{
-  foreach (auto s, series) {
-    series_.append(qvariant_cast<QXYSeries*>(s));
-  }
+void GraphDataModule::addSeries(QVariantList series) {
+  foreach (auto s, series) { series_.append(qvariant_cast<QXYSeries *>(s)); }
 }
 
-void
-GraphDataModule::changeSerieName(const int serieIndex, const QString newName)
-{
+void GraphDataModule::changeSerieName(const int serieIndex,
+                                      const QString newName) {
   QMutexLocker lock(&serieMutex_);
   series_[serieIndex]->setName(newName);
 }
 
-void
-GraphDataModule::changeSerieDisplay(const int serieIndex, const bool isOn)
-{
+void GraphDataModule::changeSerieDisplay(const int serieIndex,
+                                         const bool isOn) {
   QMutexLocker lock(&serieMutex_);
   series_[serieIndex]->setVisible(isOn);
 }
 
-void
-GraphDataModule::updateModule(void)
-{
+void GraphDataModule::updateModule(void) {
   QReadLocker lock(allDataLock_);
 
   for (auto serieIndex = 0; serieIndex < series_.size(); ++serieIndex) {
