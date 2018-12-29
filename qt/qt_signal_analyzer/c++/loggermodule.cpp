@@ -4,7 +4,7 @@
 
 LoggerModule *LoggerModule::singleton = nullptr;
 
-LoggerModule::LoggerModule(QList<QList<QList<QPointF> *>> &newDataBuffer,
+LoggerModule::LoggerModule(QList<QList<QVector<QPointF> *>> &newDataBuffer,
                            QList<QReadWriteLock *> newDataLock)
     : newDataBuffer(newDataBuffer), newDataLock_(newDataLock) {
   LoggerModule::singleton = this;
@@ -73,7 +73,7 @@ void LoggerModule::updateModule(int currBufIndex) {
     QReadLocker newDataLock(newDataLock_[currBufIndex]);
 
     auto firstIndex = enabledIndexList.first();
-    QList<QList<QPointF> *> &currBuffer = newDataBuffer[currBufIndex];
+    QList<QVector<QPointF> *> &currBuffer = newDataBuffer[currBufIndex];
 
     for (auto pointIndex = 0; pointIndex < currBuffer[firstIndex]->size();
          ++pointIndex) {

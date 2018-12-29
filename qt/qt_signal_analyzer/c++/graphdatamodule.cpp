@@ -6,7 +6,7 @@
 
 GraphDataModule *GraphDataModule::singleton = nullptr;
 
-GraphDataModule::GraphDataModule(QList<QList<QPointF> *> &allData,
+GraphDataModule::GraphDataModule(QList<QVector<QPointF> *> &allData,
                                  QReadWriteLock *allDataLock)
     : allDataLock_(allDataLock), allData_(allData) {
   GraphDataModule::singleton = this;

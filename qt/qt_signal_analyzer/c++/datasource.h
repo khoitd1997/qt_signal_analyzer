@@ -49,8 +49,6 @@
 #include "loggermodule.h"
 #include "mathmodule.h"
 #include "measuremodule.h"
-#include "scopemodule.h"
-#include "scopeseriemodule.h"
 
 QT_BEGIN_NAMESPACE
 class QQuickView;
@@ -58,8 +56,7 @@ QT_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
-class DataSource : public QObject
-{
+class DataSource : public QObject {
   Q_OBJECT
 
 signals:
@@ -68,23 +65,22 @@ signals:
   void startUpdateWithNewData(int curBufIndex);
 
 public:
-  explicit DataSource(QObject* parent = nullptr);
+  explicit DataSource(QObject *parent = nullptr);
   ~DataSource();
-  void prepNewModule(QObject* scopeModule,
-                     QThread* moduleThread,
+  void prepNewModule(QObject *scopeModule, QThread *moduleThread,
                      const bool needNewData);
 
   QReadWriteLock allDataLock_;
-  QList<QList<QPointF>*> allData_;
-  QList<QReadWriteLock*> newDataLock_;
-  QList<QList<QList<QPointF>*>> newDataBuffer_;
+  QList<QVector<QPointF> *> allData_;
+  QList<QReadWriteLock *> newDataLock_;
+  QList<QList<QVector<QPointF> *>> newDataBuffer_;
 
 public slots:
   void start(void);
   void processData(const int currBufIndex);
 
 private:
-  DataWorker* dataWorker_ = nullptr;
+  DataWorker *dataWorker_ = nullptr;
 
   uint totalFinished_ = 0;
   QMutex eventCounterLock;

@@ -45,25 +45,23 @@ static const auto kTotalSeries = 4;
 
 QT_CHARTS_USE_NAMESPACE
 
-Q_DECLARE_METATYPE(QAbstractSeries*)
-Q_DECLARE_METATYPE(QAbstractAxis*)
+Q_DECLARE_METATYPE(QAbstractSeries *)
+Q_DECLARE_METATYPE(QAbstractAxis *)
 
-DataSource::DataSource(QObject* parent)
-  : QObject(parent)
-{
-  qRegisterMetaType<QAbstractSeries*>();
-  qRegisterMetaType<QAbstractAxis*>();
+DataSource::DataSource(QObject *parent) : QObject(parent) {
+  qRegisterMetaType<QAbstractSeries *>();
+  qRegisterMetaType<QAbstractAxis *>();
 
   for (auto i = 0; i < kTotalSeries; ++i) {
-    allData_.append(new QList<QPointF>());
+    allData_.append(new QVector<QPointF>());
     allData_[i]->reserve(kMaxTotalPoints);
   }
 
   for (auto i = 0; i < totalBuffer; ++i) {
-    newDataBuffer_.append(QList<QList<QPointF>*>());
+    newDataBuffer_.append(QList<QVector<QPointF> *>());
     newDataLock_.append(new QReadWriteLock());
     for (auto j = 0; j < kTotalSeries; ++j) {
-      newDataBuffer_[i].append(new QList<QPointF>());
+      newDataBuffer_[i].append(new QVector<QPointF>());
       newDataBuffer_[i][j]->reserve(kNewPointsPerTransfer);
       for (auto k = 0; k < kNewPointsPerTransfer; ++k) {
         newDataBuffer_[i][j]->append(QPointF(5, 5));
@@ -74,25 +72,20 @@ DataSource::DataSource(QObject* parent)
   dataWorker_ = new DataWorker(newDataBuffer_, newDataLock_);
   dataWorker_->moveToThread(&dataWorkerThread_);
 
-  connect(
-    &dataWorkerThread_, &QThread::finished, dataWorker_, &QObject::deleteLater);
+  connect(&dataWorkerThread_, &QThread::finished, dataWorker_,
+          &QObject::deleteLater);
   connect(this, &DataSource::startWork, dataWorker_, &DataWorker::startWork);
-  connect(
-    dataWorker_, &DataWorker::newDataReady, this, &DataSource::processData);
+  connect(dataWorker_, &DataWorker::newDataReady, this,
+          &DataSource::processData);
   dataWorkerThread_.start();
 }
 
-void
-DataSource::prepNewModule(QObject* scopeModule,
-                          QThread* moduleThread,
-                          const bool needNewData)
-{
+void DataSource::prepNewModule(QObject *scopeModule, QThread *moduleThread,
+                               const bool needNewData) {
   scopeModule->moveToThread(moduleThread);
   connect(moduleThread, &QThread::finished, scopeModule, &QObject::deleteLater);
   if (needNewData) {
-    connect(this,
-            SIGNAL(startUpdateWithNewData(int)),
-            scopeModule,
+    connect(this, SIGNAL(startUpdateWithNewData(int)), scopeModule,
             SLOT(updateModule(int)));
   } else {
     connect(this, SIGNAL(startUpdate()), scopeModule, SLOT(updateModule()));
@@ -100,22 +93,15 @@ DataSource::prepNewModule(QObject* scopeModule,
   moduleThread->start();
 }
 
-DataSource::~DataSource()
-{
+DataSource::~DataSource() {
   // TODO: add deallocation of resources
   dataWorkerThread_.quit();
   dataWorkerThread_.wait();
 }
 
-void
-DataSource::start(void)
-{
-  emit startWork();
-}
+void DataSource::start(void) { emit startWork(); }
 
-void
-DataSource::processData(const int curBufIndex)
-{
+void DataSource::processData(const int curBufIndex) {
   // move fresh data to the list of all data and trim the list if necessary
   {
     QWriteLocker lock(&allDataLock_);
@@ -127,8 +113,8 @@ DataSource::processData(const int curBufIndex)
       if ((allData_[i])->size() > kStorageThreshold * kMaxTotalPoints) {
         //   qDebug() << "Free elements" << endl;
         (allData_[i])
-          ->erase((allData_[i])->begin(),
-                  (allData_[i])->begin() + (allData_[i])->size() / 2);
+            ->erase((allData_[i])->begin(),
+                    (allData_[i])->begin() + (allData_[i])->size() / 2);
       }
     }
   }

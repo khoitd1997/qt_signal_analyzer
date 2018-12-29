@@ -5,7 +5,7 @@
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QtMath>
 
-DataWorker::DataWorker(QList<QList<QList<QPointF> *>> &newDataBuffer,
+DataWorker::DataWorker(QList<QList<QVector<QPointF> *>> &newDataBuffer,
                        QList<QReadWriteLock *> newDataLock)
     : totalBuffer(newDataBuffer.size()), newDataLock_(newDataLock),
       newDataBuffer_(newDataBuffer) {}

@@ -11,7 +11,7 @@ static const int kMaxPeriodCalcTrial = 7;
 
 MeasureModule *MeasureModule::singleton = nullptr;
 
-MeasureModule::MeasureModule(QList<QList<QPointF> *> &allData_,
+MeasureModule::MeasureModule(QList<QVector<QPointF> *> &allData_,
                              QReadWriteLock *allDataLock)
     : allDataLock_(allDataLock), allData_(allData_) {
   singleton = this;
@@ -69,9 +69,9 @@ qreal MeasureModule::getPeakToPeak(const int sourceIndex) {
   return getMaxY(sourceIndex) - getMinY(sourceIndex);
 }
 
-QList<QPointF>::reverse_iterator MeasureModule::findFirstPointInRange(
-    QList<QPointF>::reverse_iterator beginPoint,
-    QList<QPointF>::reverse_iterator endPoint, qreal &range,
+QVector<QPointF>::reverse_iterator MeasureModule::findFirstPointInRange(
+    QVector<QPointF>::reverse_iterator beginPoint,
+    QVector<QPointF>::reverse_iterator endPoint, qreal &range,
     const qreal rangeIncrement, std::function<bool(const QPointF &)> comp) {
   auto res = endPoint;
   auto trialCount = 0;

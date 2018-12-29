@@ -16,42 +16,30 @@ QT_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
-#include "scopeseriemodule.h"
-
-class MathModule : public QObject
-{
+class MathModule : public QObject {
   Q_OBJECT
 public:
-  MathModule(QList<QList<QPointF>*>& allData, QReadWriteLock* allDataLock);
-  enum MathType
-  {
-    Subtraction = 0,
-    Addition,
-    Absolute,
-    Logarithm
-  };
+  MathModule(QList<QVector<QPointF> *> &allData, QReadWriteLock *allDataLock);
+  enum MathType { Subtraction = 0, Addition, Absolute, Logarithm };
   Q_ENUM(MathType)
 
-  static QObject* singletonProvider(QQmlEngine* engine,
-                                    QJSEngine* scriptEngine);
+  static QObject *singletonProvider(QQmlEngine *engine,
+                                    QJSEngine *scriptEngine);
 
 signals:
 
 public slots:
-  void setGuiSource(QObject* mathGUI);
+  void setGuiSource(QObject *mathGUI);
   void addSeries(QVariantList series);
-  void switchMath(const int slotIndex,
-                  const int newType,
-                  const int newASource,
-                  const int newBSource,
-                  const bool isEnabled);
+  void switchMath(const int slotIndex, const int newType, const int newASource,
+                  const int newBSource, const bool isEnabled);
   void updateModule();
 
 private:
-  static MathModule* singleton;
+  static MathModule *singleton;
 
-  QReadWriteLock* allDataLock_;
-  QList<QList<QPointF>*>& allData_;
+  QReadWriteLock *allDataLock_;
+  QList<QVector<QPointF> *> &allData_;
 
   QMutex mathDataMutex_;
   QList<MathType> typeList_;
@@ -60,12 +48,12 @@ private:
   QList<bool> enabledList_;
   QList<bool> serieChangedType_;
 
-  QList<QList<QPointF>*> mathSerieBuffers_;
+  QList<QVector<QPointF> *> mathSerieBuffers_;
 
   static const QList<QString> kMathNames;
-  QList<QXYSeries*> series_;
+  QList<QXYSeries *> series_;
 
-  QObject* guiObj_;
+  QObject *guiObj_;
 };
 
 #endif // MATHMODULE_H

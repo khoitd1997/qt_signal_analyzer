@@ -14,19 +14,19 @@ QT_END_NAMESPACE
 
 QT_CHARTS_USE_NAMESPACE
 
-class GraphDataModule : public QObject
-{
+class GraphDataModule : public QObject {
   Q_OBJECT
 public:
-  GraphDataModule(QList<QList<QPointF>*>& allData, QReadWriteLock* allDataLock);
-  static QObject* singletonProvider(QQmlEngine* engine,
-                                    QJSEngine* scriptEngine);
+  GraphDataModule(QList<QVector<QPointF> *> &allData,
+                  QReadWriteLock *allDataLock);
+  static QObject *singletonProvider(QQmlEngine *engine,
+                                    QJSEngine *scriptEngine);
 
 signals:
   void graphDataFinished();
 
 public slots:
-  void setGuiSource(QObject* graphGUI);
+  void setGuiSource(QObject *graphGUI);
   void updateModule(void);
 
   void changeSerieName(const int serieIndex, const QString newName);
@@ -34,13 +34,13 @@ public slots:
   void addSeries(QVariantList series);
 
 private:
-  static GraphDataModule* singleton;
+  static GraphDataModule *singleton;
 
   QMutex serieMutex_;
-  QReadWriteLock* allDataLock_;
-  QList<QXYSeries*> series_;
-  QObject* guiObj_;
-  QList<QList<QPointF>*>& allData_;
+  QReadWriteLock *allDataLock_;
+  QList<QXYSeries *> series_;
+  QObject *guiObj_;
+  QList<QVector<QPointF> *> &allData_;
 };
 
 #endif // GRAPHDATAMODULE_H

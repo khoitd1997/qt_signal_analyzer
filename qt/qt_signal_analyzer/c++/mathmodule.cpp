@@ -7,7 +7,7 @@
 const QList<QString> MathModule::kMathNames({"A-B", "A+B", "Abs(A)", "Log(A)"});
 MathModule *MathModule::singleton = nullptr;
 
-MathModule::MathModule(QList<QList<QPointF> *> &allData,
+MathModule::MathModule(QList<QVector<QPointF> *> &allData,
                        QReadWriteLock *allDataLock)
     : allDataLock_(allDataLock), allData_(allData) {
   MathModule::singleton = this;
@@ -91,7 +91,7 @@ void MathModule::addSeries(QVariantList series) {
     sourceBList_.append(0);
     enabledList_.append(false);
     serieChangedType_.append(false);
-    mathSerieBuffers_.append(new QList<QPointF>());
+    mathSerieBuffers_.append(new QVector<QPointF>());
     mathSerieBuffers_[i]->reserve(kMaxTotalPoints);
   }
 }

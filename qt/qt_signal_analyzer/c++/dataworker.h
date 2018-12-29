@@ -11,7 +11,7 @@
 class DataWorker : public QObject {
   Q_OBJECT
 public:
-  explicit DataWorker(QList<QList<QList<QPointF> *>> &newDataBuffer,
+  explicit DataWorker(QList<QList<QVector<QPointF> *>> &newDataBuffer,
                       QList<QReadWriteLock *> newDataLock);
 
 signals:
@@ -28,7 +28,7 @@ private:
   int curBufIndex_ = 0;
 
   QList<QReadWriteLock *> newDataLock_;
-  QList<QList<QList<QPointF> *>> &newDataBuffer_;
+  QList<QList<QVector<QPointF> *>> &newDataBuffer_;
 };
 
 #endif // DATAWORKER_H
