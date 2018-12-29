@@ -20,10 +20,7 @@ SOURCES += \
     c++/dataworker.cpp \
     c++/graphdatamodule.cpp \
     c++/loggermodule.cpp \
-    c++/mathmodule.cpp \
-    c++/scopemodule.cpp \
-    c++/scopeseriemodule.cpp \
-    c++/cursormodule.cpp
+    c++/mathmodule.cpp 
 
 RESOURCES += qml.qrc
 
@@ -45,10 +42,7 @@ HEADERS += \
     c++/graphdatamodule.h \
     c++/loggermodule.h \
     c++/mathmodule.h \
-    c++/scopemodule.h \
-    c++/scopeseriemodule.h \
-    c++/scopeconstants.h \
-    c++/cursormodule.h
+    c++/scopeconstants.h
 
 DISTFILES += \
     qmldir
