@@ -6,14 +6,17 @@ import QtQuick.Dialogs 1.3
 import "../../CustomComponents"
 import "../../CustomStyle"
 
+import Qt.analyzer.loggerModule 1.0
+import Qt.analyzer.measureModule 1.0
+
+
 Item {
     id: root
 
     CollapsibleSection {
         id: measureHeader
         width: parent.width
-        anchors.top: parent.top
-        anchors.topMargin: 0
+        anchors { top: parent.top; topMargin: 0; }
         displayText: "Measurements and Logger"
         onIsClicked: {
             isOn ? tabUp2.running = true : tabDown2.running = true
@@ -46,23 +49,17 @@ Item {
         anchors.top: measureHeader.bottom
         color: "#3A3A3A"
 
-
         Rectangle {
-            anchors.top: parent.top
-            anchors.topMargin: 5
-            anchors.left: parent.left
+            anchors { top: parent.top; topMargin: 5; left: parent.left; }
 
             id: tableHeader
             color: "#6C6F6F"
-            height: childrenRect.height
-            width: parent.width
+            height: childrenRect.height; width: parent.width;
 
             Row {
                 id: headerRow
                 property int cellSpacing: 70
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.leftMargin: 5
+                anchors { top: parent.top; left: parent.left; leftMargin: 5; }
                 spacing: cellSpacing
 
                 ListModel {
@@ -87,18 +84,17 @@ Item {
         }
 
         Column {
-            id: columnRepeater
+            id: measureColumnRepeater
             anchors.top: tableHeader.bottom
-            width: parent.width
-            height: childrenRect.height
-            property var typeIndex: []
-            property var valueList: [0.0,0.1,0.2,0.3]
-            property var sourceList: []
-            property var enabledList: []
+            width: parent.width ; height: childrenRect.height;
+            
+            property var valueList: [0,0,0,0];
+            signal measureChanged(int slotIndex, int newType, int newSource, bool isEnabled)
 
             Repeater {
                 id: tableRepeater
                 model: [0,1,2,3]
+
                 Column  {
                     Row {
                         spacing: headerRow.cellSpacing
@@ -108,40 +104,39 @@ Item {
                             width: headerModel.get(0).cellWidth
                             model: ["Freq", "Period", "Max", "Min", "Peak-Peak"]
                             contentItem: Text {
-                                font.pointSize: 13
+                                font { pointSize: 13; bold: true; }
                                 leftPadding: 10
                                 text: typeBox.currentText
                                 color: ScopeSetting.cellColorList[modelData]
-                                font.bold: true
                                 verticalAlignment: Text.AlignVCenter
                                 elide: Text.ElideRight
                             }
 
-                            Component.onCompleted: {
-                                columnRepeater.typeIndex.push(0);
-                                columnRepeater.sourceList.push(0);
-                                columnRepeater.enabledList.push(false);
-                            }
-
                             onActivated: {
                                 console.log("Type index changed")
-                                columnRepeater.typeIndex[modelData] = typeBox.currentIndex;
+                                if(measureCheckBox.checked) {
+                                        measureColumnRepeater.measureChanged(modelData, typeBox.currentIndex, 
+                                        sourceBox.currentIndex, measureCheckBox.checked);
+                                    }
                             }
                         }
 
                         ComboBox {
                             id: sourceBox
                             contentItem: Text {
-                                font.pointSize: 13
+                                font { pointSize: 13; bold: true; }
                                 leftPadding: 10
                                 text: signalNames[sourceBox.currentIndex]
                                 color: ScopeSetting.cellColorList[modelData]
-                                font.bold: true
+                                
                                 verticalAlignment: Text.AlignVCenter
                                 elide: Text.ElideRight
                             }
                             onActivated: {
-                                columnRepeater.sourceList[modelData] = sourceBox.currentIndex;
+                                if(measureCheckBox.checked) {
+                                    measureColumnRepeater.measureChanged(modelData, typeBox.currentIndex, 
+                                    sourceBox.currentIndex, measureCheckBox.checked);
+                                }
                             }
 
                             width: headerModel.get(1).cellWidth
@@ -153,50 +148,46 @@ Item {
                             topPadding: 15
                             color: ScopeSetting.cellColorList[modelData]
                             horizontalAlignment: Text.AlignHCenter
-                            text:  columnRepeater.valueList[modelData] < 0 ? "Inf" :
-                                Math.round(columnRepeater.valueList[modelData] * 1000) / 1000;
-                            font.pointSize: 13
-                            font.bold: true
+                            text:  measureColumnRepeater.valueList[modelData] < 0 ? "Inf" :
+                                Math.round(measureColumnRepeater.valueList[modelData] * 1000) / 1000;
+                            font { pointSize: 13; bold: true; }
                         }
 
                         CheckBox {
+                            id: measureCheckBox
                             width: headerModel.get(3).cellWidth
                             checked: false
                             onClicked: {
-                                var tempList = columnRepeater.enabledList;
-                                tempList[modelData] = checked;
-                                columnRepeater.enabledList = tempList;
+                                measureColumnRepeater.measureChanged(modelData, typeBox.currentIndex, sourceBox.currentIndex, checked);
                             }
                         }
                     }
 
                     Rectangle {
-                        width: root.width
-                        height: 1
-                        color: "#6C6F6F"
+                        width: root.width; height: 1; color: "#6C6F6F"
                     }
                 }
             }
 
-            Connections {
-                target: dataSource
-                onDataProcessDone: {
-                    var newItems = dataSource.measureModule.getResult();
-                    columnRepeater.valueList = newItems;
+            function changeMeasureResults() {
+                console.log("Changing meausurement results");
+                var newItems = MeasureModule.getResult();
+                for(var i = 0; i < newItems.length; ++i) {
+                    console.log(newItems[i]);
                 }
+                measureColumnRepeater.valueList = newItems;
             }
 
             Component.onCompleted: {
-                dataSource.measureModule.setGuiSource(columnRepeater)
+                MeasureModule.setGuiSource(measureColumnRepeater);
+                MeasureModule.addMeasurements(tableRepeater.model.length);
             }
         }
 
         Rectangle {
             id: loggerSectionSeparator
-            anchors.top: columnRepeater.bottom
-            anchors.topMargin: 10
-            width: root.width
-            height: 0
+            anchors { top: measureColumnRepeater.bottom; topMargin: 10; }
+            width: root.width; height: 0;
             color: "#6C6F6F"
         }
 
@@ -212,7 +203,7 @@ Item {
                 loggerButton.elapsedTime = 0;
                 var urlStripped = (loggerSaveDialog.fileUrls.toString()+"").replace('file://', '');
                 console.log(urlStripped);
-                var res = dataSource.loggerModule.switchLogger(true, loggerButton.serieEnabledList, urlStripped, signalNames);
+                var res = LoggerModule.switchLogger(true, loggerButton.serieEnabledList, urlStripped, signalNames);
                 
                 if(res === "") {
                     actionStatusChanged("Logger Started")
@@ -232,32 +223,19 @@ Item {
             property int totalPoint: 0
             property var serieEnabledList: []
 
-            anchors.top: loggerSectionSeparator.bottom
-            anchors.topMargin: -6
-            anchors.left: parent.left
-            anchors.leftMargin: 4
+            anchors { top: loggerSectionSeparator.bottom; topMargin: -6; left: parent.left; leftMargin: 4; }
             color: loggerButtonMouse.containsMouse ? UIStyle.buttonBgHovered
                                                    : UIStyle.buttonBgUnhovered
             border.color: loggerButton.isRecording ? "#C02F21" : "#1FE524"
             radius: 5
-            width: childrenRect.width + 2
-            height: childrenRect.height + 4
-
-            Component.onCompleted: {
-                dataSource.loggerModule.setGuiSource(loggerButton);
-            }
+            width: childrenRect.width + 2; height: childrenRect.height + 4;
 
             Label {
                 id: loggerStatusText
-                width: 100
-                height: Text.paintedHeight
+                width: 100; height: Text.paintedHeight;
                 color: loggerButton.isRecording ? "#C02F21" : "#1FE524"
-                font.bold: true
-                font.pointSize: 13
-                anchors.left: parent.left
-                anchors.leftMargin: 10
-                anchors.top: parent.top
-                anchors.verticalCenter: parent.verticalCenter
+                font { bold: true ; pointSize: 13; }
+                anchors { left: parent.left; leftMargin: 10; top: parent.top; verticalCenter: parent.verticalCenter; }
 
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
@@ -266,13 +244,9 @@ Item {
 
             Image {
                 id: loggerIcon
-                anchors.top: parent.top
-                anchors.left: loggerStatusText.right
-                anchors.topMargin: 4
-                anchors.leftMargin: 5
+                anchors { top: parent.top; left: loggerStatusText.right; topMargin: 4; leftMargin: 5; }
 
-                width: 23
-                height: 23
+                width: 23; height: 23;
                 source: loggerButton.isRecording ? "qrc:///qml/resources/stop-button.png"
                                                  : "qrc:///qml/resources/play-button.png"
             }
@@ -286,7 +260,7 @@ Item {
                         loggerSaveDialog.visible = true;
                     } else {
                         loggerTimer.stop();
-                        var res = dataSource.loggerModule.switchLogger(false, [], "", []);
+                        var res = LoggerModule.switchLogger(false, [], "", []);
 
                         if(res === "") {
                             actionStatusChanged("Logger File Saved");
@@ -297,15 +271,20 @@ Item {
                     }
                 }
             }
+
+            Component.onCompleted: {
+                LoggerModule.setGuiSource(loggerButton);
+            }
+
+            function changeTotalPoint(newTotalPoint) {
+                loggerButton.totalPoint = newTotalPoint;
+            }
         }
 
         Rectangle {
             id: loggerInfo
-            anchors.top: loggerButton.bottom
-            anchors.topMargin: 4
-            anchors.left: measureSection.left
-            height: childrenRect.height
-            width: measureSection.width * 0.4
+            anchors { top: loggerButton.bottom; topMargin: 4; left: measureSection.left; }
+            height: childrenRect.height; width: measureSection.width * 0.4;
             color: "transparent"
 
             Timer {
@@ -321,18 +300,15 @@ Item {
 
             Label {
                 id: timeLabel
-                anchors.top: parent.top
-                anchors.left: parent.left
-                font.bold: true
-                font.pointSize: 13
+                anchors { top: parent.top; left: parent.left; } 
+                font { bold: true; pointSize: 13; }
                 leftPadding: 8
                 color: "#E2E8E7"
                 text:"Total Time(ms): " + loggerButton.elapsedTime
             }
 
             Label {
-                font.bold: true
-                font.pointSize: 13
+                font { bold: true; pointSize: 13; }
                 anchors.top: timeLabel.bottom
                 anchors.left: parent.left
                 leftPadding: 8
@@ -347,8 +323,7 @@ Item {
             anchors.left: loggerInfo.right
             anchors.leftMargin: 30
 
-            width: 1
-            height: loggerInfo.height
+            width: 1; height: loggerInfo.height;
             color: "#6C6F6F"
         }
 
@@ -367,8 +342,8 @@ Item {
             horizontalAlignment: Text.AlignHCenter
 
             color: "#E2E8E7"
-            font.bold: true
-            font.pointSize: 13
+            font { bold: true; pointSize: 13; }
+
             text: "Logger Target"
         }
 
@@ -404,8 +379,7 @@ Item {
                             rightPadding: loggerCheckBox.spacing
 
                             text: modelData
-                            font.pointSize: 13
-                            font.bold: true
+                            font { bold: true; pointSize: 13; }
                             color: ScopeSetting.signalColorList[index]
                         }
                         
