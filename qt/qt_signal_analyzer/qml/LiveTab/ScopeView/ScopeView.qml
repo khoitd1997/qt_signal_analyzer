@@ -32,23 +32,29 @@ import QtCharts 2.1
 import "."
 import "../../CustomStyle"
 
+import "ScopeView.js" as Scope
+import "Cursor.js" as Cursor
+import "Axis.js" as Axis
+
+import Qt.analyzer.graphModule 1.0
+
 ChartView {
     id: chartView
     animationOptions: ChartView.NoAnimation
     theme: ChartView.ChartThemeDark
 
-    signal newCursorData(real xCursorDif, real yCursorA, real yCursorB)
-
-    property bool cursorDataChanged: false
-
     property bool openGL: true
     property bool openGLSupported: true
 
+    // graph control stuffs
     property real oldYOffset: 0
     property real oldXOffset: 0
 
-    property real xCursorDif : 0
-    property var yCursorData : [0,0]
+    // cursor stuffs
+    signal newCursorData(real xCursorDif, real yCursorA, real yCursorB, real yCursorDif)
+    property bool cursorDataChanged: false
+    property var xCursorData: [0,0]
+    property var yCursorData: [0,0]
 
     onOpenGLChanged: {
         if (openGLSupported) {
@@ -62,102 +68,104 @@ ChartView {
             openGLSupported = false
             openGL = false
         }
-        dataSource.graphModule.updateSeriesRef(serieList);
+
+        GraphModule.addSerie(serieList);
+        GraphModule.setGuiSource(chartView)
         dataSource.start();
     }
 
-    ValueAxis {
-        titleText: "Time"
-        id: xAxis
-        min: 400
-        max: 4000
+    ValueAxis { id: xAxis; titleText: "Time";  min: 400; max: 4000; }
 
-    }
+    property var serieList: [lineSerie0, lineSerie1, lineSerie2, lineSerie3]
 
-    property var serieList: [lineSeries0, lineSeries1, lineSeries2, lineSeries3]
     LineSeries {
-        id: lineSeries0
+        id: lineSerie0
+
         visible: false
         name: "Signal 0"
         color: ScopeSetting.signalColorList[0]
         axisX: xAxis
+
         axisY: ValueAxis {
             tickCount: 8
-            visible: lineSeries0.visible
-            labelsColor: lineSeries0.color
-            color: lineSeries0.color
-            min: -5
-            max: 5
+            visible: lineSerie0.visible
+            labelsColor: lineSerie0.color
+            color: lineSerie0.color
+            min: -6
+            max: 6
         }
         useOpenGL: chartView.openGL
     }
 
     LineSeries {
-        id: lineSeries1
+        id: lineSerie1
+
         visible: false
         name: "Signal 1"
         color: ScopeSetting.signalColorList[1]
         axisX: xAxis
+
         axisYRight: ValueAxis {
             tickCount: 8
-            visible: lineSeries1.visible
-            labelsColor: lineSeries1.color
-            color: lineSeries1.color
-            min: -5
-            max: 5
+            visible: lineSerie1.visible
+            labelsColor: lineSerie1.color
+            color: lineSerie1.color
+            min: -6
+            max: 6
         }
         useOpenGL: chartView.openGL
     }
 
     LineSeries {
-        id: lineSeries2
+        id: lineSerie2
+
         visible: false
         name: "Signal 2"
-        axisX: xAxis
         color: ScopeSetting.signalColorList[2]
+        axisX: xAxis
+
         axisY: ValueAxis {
             tickCount: 8
-            visible: lineSeries2.visible
-            labelsColor: lineSeries2.color
-            color: lineSeries2.color
-            min: -5
-            max: 5
+            visible: lineSerie2.visible
+            labelsColor: lineSerie2.color
+            color: lineSerie2.color
+            min: -6
+            max: 6
         }
         useOpenGL: chartView.openGL
     }
 
     LineSeries {
-        id: lineSeries3
-        visible: true
+        id: lineSerie3
+
+        visible: false
         name: "Signal 3"
-        axisX: xAxis
         color: ScopeSetting.signalColorList[3]
+        axisX: xAxis
+
         axisYRight: ValueAxis {
             tickCount: 8
-            visible: lineSeries3.visible
-            labelsColor: lineSeries3.color
-            color: lineSeries3.color
-            min: -5
-            max: 5
+            visible: lineSerie3.visible
+            labelsColor: lineSerie3.color
+            color: lineSerie3.color
+            min: -6
+            max: 6
         }
         useOpenGL: chartView.openGL
     }
 
     property var xCursorList: [cursorX0, cursorX1]
     property var cursorXPrevPosition: [0, 0]
+
     LineSeries {
         id: cursorX0
         XYPoint { x: xAxis.min; y: 1 }
         XYPoint { x: xAxis.min; y: 0 }
 
         visible: false
-        name: "Cursor X_A"
+        name: "Cursor X_0"
         axisX: xAxis
-        axisY: ValueAxis {
-            visible: false
-            max: 1
-            min: 0
-        }
+        axisY: ValueAxis {visible: false; max: 6; min: -6; }
 
         color: "#B52E92"
         useOpenGL: chartView.openGL
@@ -166,16 +174,12 @@ ChartView {
     LineSeries {
         id: cursorX1
         XYPoint { x: xAxis.max; y: 1 }
-        XYPoint { x: xAxis.max; y: 0 }
+        XYPoint { x: xAxis.min; y: 0 }
 
         visible: false
-        name: "Cursor X_B"
+        name: "Cursor X_1"
         axisX: xAxis
-        axisY: ValueAxis {
-            visible: false
-            max: 1
-            min: 0
-        }
+        axisY: ValueAxis { visible: false; max: 6; min: -6; }
         color: "#A038B5"
         useOpenGL: chartView.openGL
     }
@@ -188,13 +192,8 @@ ChartView {
         XYPoint { x: 0; y: 1 }
 
         visible: false
-        name: "Cursor Y_A"
-        axisX: ValueAxis {
-            visible: false
-            max: 1
-            min: 0
-        }
-
+        name: "Cursor Y_0"
+        axisX: ValueAxis { visible: false; max: 1; min: 0; }
         axisY: serieList[0].axisY
 
         color: "#307054"
@@ -207,38 +206,35 @@ ChartView {
         XYPoint { x: 0; y: 0 }
 
         visible: false
-        name: "Cursor Y_B"
-        axisX: ValueAxis {
-            visible: false
-            max: 1
-            min: 0
-        }
+        name: "Cursor Y_1"
+        axisX: ValueAxis { visible: false; max: 1; min: 0; }
         axisY: serieList[0].axisY
         color: "#439D76"
         useOpenGL: chartView.openGL
     }
 
-    Connections {
-        target: dataSource
-        onDataProcessDone: {
-            for(var i = 0; i < serieList.length; ++i) {
-                chartView.updateGraph(i);
-            }
-        }
+    property var mathSerieList: [math0, math1]
+    LineSeries {
+        id: math0
+        visible: false
+        name: "Math 0"
+        axisX: ValueAxis { visible: false; max: xAxis.max; min: xAxis.min; }
+
+        axisY: ValueAxis {visible: false; max: 5; min: -5;}
+        color: ScopeSetting.cellColorList[0]
+        useOpenGL: chartView.openGL
     }
 
-//    Timer {
-//        id: refreshTimer
-//        interval: 300
-//        running: true
-//        repeat: true
-//        onTriggered: {
-//            dataSource.update();
-//            chartView.updateGraph(1);
-//            chartView.updateGraph(2);
-//            chartView.updateGraph(3);
-//        }
-//    }
+    LineSeries {
+        id: math1
+        visible: false
+        name: "Math 1"
+        axisX: ValueAxis { visible: false; max: xAxis.max; min: xAxis.min; }
+
+        axisY: ValueAxis { visible: false; max: 5; min: -5; }
+        color: ScopeSetting.cellColorList[1]
+        useOpenGL: chartView.openGL
+    }
 
     function saveGraphImage(graphImageUrl) {
         // need to strip due to Qt bugs
@@ -248,122 +244,46 @@ ChartView {
                               });
     }
 
-    function updateGraph(id){
-        if (serieList[id].visible) {
-            var serie = serieList[id]
-            xAxis.min += serie.at(serie.count - 1).x + 5 - xAxis.max;
-            xAxis.max += serie.at(serie.count - 1).x + 5 - xAxis.max;
-        }
-        for(var i = 0; i < xCursorList.length; ++i) {
-            updateXCursor(i)
-        }
-        for(var j = 0; j < yCursorList.length; ++j) {
-            updateYCursor(j)
+    function updateGraphs() {
+        Axis.scrollXAxis(chartView, xAxis);
+
+        for(var xCursorIndex = 0; xCursorIndex < xCursorList.length; ++xCursorIndex) {
+            Cursor.updateXCursor(chartView, xAxis, xCursorIndex);
         }
 
-        chartView.cursorDataChanged = false
+        for(var yCursorIndex = 0; yCursorIndex < yCursorList.length; ++yCursorIndex) {
+            Cursor.updateYCursor(chartView, yCursorIndex);
+        }
+
+        if(cursorDataChanged) {
+            newCursorData(chartView.xCursorData[1] - chartView.xCursorData[0],
+                          chartView.yCursorData[0], chartView.yCursorData[1],
+                          chartView.yCursorData[1] - chartView.yCursorData[0]);
+        }
+        chartView.cursorDataChanged = false;
     }
 
-    function changeSeriesName(id, newName) {
-        serieList[id].name = newName;
+    function changeAxisOffset(id, axisName, newOffset) {
+        Axis.changeAxisOffset(chartView, xAxis, id, axisName, newOffset);
     }
 
-    function changeSeriesDisplay(id, isOn) {
-        serieList[id].visible = isOn
-    }
-
-    function changeAxisOffset(id, axisName, newOffset){
-        if (axisName === "x") {
-            xAxis.min += (newOffset-oldXOffset)
-            xAxis.max += (newOffset-oldXOffset)
-            oldXOffset = newOffset
-        } else if(axisName === "y") {
-            if(id%2 !=0){
-                serieList[id].axisYRight.max += (newOffset-oldYOffset)
-                serieList[id].axisYRight.min += (newOffset-oldYOffset)
-            } else {
-                serieList[id].axisY.max += (newOffset-oldYOffset)
-                serieList[id].axisY.min += (newOffset-oldYOffset)
-            }
-            oldYOffset = newOffset
-        }
-    }
-
-    function changeAxisRange(id, axisName, newRange){
-        var serie = serieList[id]
-        if (axisName === "x") {
-            xAxis.max += (newRange - (serie.axisX.max - serie.axisX.min))/2
-            xAxis.min -= (newRange - (serie.axisX.max - serie.axisX.min))/2
-
-        } else if(axisName === "y") {
-            if((id%2) !=0){
-                serie.axisYRight.max += (newRange - (serie.axisYRight.max - serie.axisYRight.min))/2.0
-                serie.axisYRight.min -= (newRange - (serie.axisYRight.max - serie.axisYRight.min))/2.0
-            } else {
-                serie.axisY.max += (newRange - (serie.axisY.max - serie.axisY.min))/2.0
-                serie.axisY.min -= (newRange - (serie.axisY.max - serie.axisY.min))/2.0
-            }
-        }
-    }
-
-    function updateXCursor(cursorIndex) {
-        var cursor = xCursorList[cursorIndex]
-        if(cursor.visible === true) {
-            changeXCursor(cursorIndex, cursorXPrevPosition[cursorIndex])
-        }
+    function changeAxisRange(id, axisName, newRange) {
+        Axis.changeAxisRange(chartView, xAxis, id, axisName, newRange);
     }
 
     function changeXCursor(cursorIndex, newPosition) {
-        var cursor = xCursorList[cursorIndex]
-        cursor.remove(1)
-        cursor.remove(0)
-        cursor.append(xAxis.min + (newPosition/100.0) * (xAxis.max - xAxis.min), cursor.axisY.max)
-        cursor.append(xAxis.min + (newPosition/100.0) * (xAxis.max - xAxis.min), cursor.axisY.min)
-        cursorXPrevPosition[cursorIndex] = newPosition
-        cursor.visible = true
-    }
-
-    function updateYCursor(cursorIndex) {
-        var cursor = yCursorList[cursorIndex]
-        if(cursor.visible === true) {
-        cursor.remove(1)
-        cursor.remove(0)
-        cursor.append(cursor.axisX.max, cursor.axisY.min + (yCursorPrevPosition[cursorIndex]/100.0) * (cursor.axisY.max - cursor.axisY.min))
-        cursor.append(cursor.axisX.min, cursor.axisY.min + (yCursorPrevPosition[cursorIndex]/100.0) * (cursor.axisY.max - cursor.axisY.min))
-        if(cursor.at(0).y !== chartView.yCursorData[cursorIndex]) {
-            chartView.cursorDataChanged = true
-        }
-        }
+        Cursor.changeXCursor(chartView, xAxis, cursorIndex, newPosition);
     }
 
     function changeYCursor(serieIndex, cursorIndex, newPosition) {
-        var cursor = yCursorList[cursorIndex]
-        cursor.remove(1)
-        cursor.remove(0)
-
-        if(serieIndex%2 !=0){
-            cursor.axisY = serieList[serieIndex].axisYRight
-        } else {
-            cursor.axisY = serieList[serieIndex].axisY
-        }
-
-        cursor.append(cursor.axisX.max, cursor.axisY.min + (newPosition/100.0) * (cursor.axisY.max - cursor.axisY.min))
-        cursor.append(cursor.axisX.min, cursor.axisY.min + (newPosition/100.0) * (cursor.axisY.max - cursor.axisY.min))
-        yCursorPrevPosition[cursorIndex] = newPosition
-        cursor.visible = true
+        Cursor.changeYCursor(chartView, serieIndex, cursorIndex, newPosition);
     }
 
-    function cursorSwitch(isOn) {
-        for(var i = 0; i < xCursorList.length; ++i) {
-            xCursorList[i].visible = isOn
-        }
-        for(var j = 0; j < yCursorList.length; ++j) {
-            yCursorList[j].visible = isOn
-        }
+    function cursorDisplayChanged(isOn) {
+        Cursor.cursorDisplayChanged(chartView, isOn);
     }
 
     function changeRefreshRate(rate) {
         refreshTimer.interval = 1 / Number(rate) * 1000;
     }
-
 }
