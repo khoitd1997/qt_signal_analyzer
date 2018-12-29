@@ -5,17 +5,11 @@ import QtQuick 2.12
 import "../../CustomComponents"
 import "../../CustomStyle"
 
+import Qt.analyzer.graphModule 1.0
+
+
 Item {
     id: root
-    // graph chooser section
-    signal seriesNameChanged(int id, string newName)
-    signal seriesDisplayChanged(int id, bool isOn)
-    signal axisRangeChanged(int id, string axisName, real newRange)
-    signal axisOffsetChanged(int id, string axisName, real newOffset)
-
-    Component.onCompleted: {
-        dataSource.graphModule.setGuiSource(root);
-    }
 
     CollapsibleSection {
             id: sectionHeader1
@@ -66,13 +60,13 @@ Item {
                     buttonTextColor: modelData
                     buttonBorderColor: ScopeSetting.signalBorderColorList[index]
                     onNameChanged: {
-                        root.seriesNameChanged(numberID, newName);
+                        GraphModule.changeSerieName(numberID, newName);
                         var newItems = signalNames;
                         newItems[numberID] = newName;
                         signalNames = newItems;
                     }
                     onCheckChanged: {
-                        root.seriesDisplayChanged(numberID, checkStatus)
+                        GraphModule.changeSerieDisplay(numberID, checkStatus);
                     }
                 }
             }
@@ -154,9 +148,9 @@ Item {
                     width: section1.width
                     onSliderMoved: {
                         if(sliderType === "scaling"){
-                            root.axisRangeChanged(currentSignalButton.currentSelection, axisMod, newRange);
+                            axisRangeChanged(currentSignalButton.currentSelection, axisMod, newRange);
                         } else {
-                            root.axisOffsetChanged(currentSignalButton.currentSelection, axisMod, newRange);
+                            axisOffsetChanged(currentSignalButton.currentSelection, axisMod, newRange);
                         }
                     }
                 }

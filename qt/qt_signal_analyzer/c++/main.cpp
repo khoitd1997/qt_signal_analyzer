@@ -28,11 +28,12 @@
 ****************************************************************************/
 
 #include "datasource.h"
+#include "graphdatamodule.h"
 #include "measuremodule.h"
-#include "measureobj.h"
 
 #include <QApplication>
 #include <QGuiApplication>
+#include <QObject>
 #include <QQmlApplicationEngine>
 #include <QQuickStyle>
 #include <QtCore/QDir>
@@ -53,27 +54,29 @@ main(int argc, char* argv[])
   QQuickStyle::setFallbackStyle("Material");
   //  qDebug() << "All Themes: " << QQuickStyle::availableStyles();
   QQmlApplicationEngine engine;
-  //  MeasureObj measureObj;
   DataSource dataSource(&engine);
+
+  QThread graphThread;
+  GraphDataModule graphModule(dataSource.allData_, &dataSource.allDataLock_);
+  dataSource.prepNewModule(&graphModule, &graphThread);
+
   //  MeasureModule measuremodule;
-  qmlRegisterType<MeasureObj>("MeasureObj", 1, 0, "MeasureObj");
-  qmlRegisterUncreatableType<MeasureModule>(
-    "MeasureModule",
-    1,
-    0,
-    "MeasureModule",
-    "Measure Module is always instantiated in c++ code");
-  qmlRegisterUncreatableType<DataSource>(
-    "DataSource",
-    1,
-    0,
-    "DataSource",
-    "Data Source is always instantiated in c++ code");
+  //   qmlRegisterUncreatableType<MeasureModule>(
+  //       "MeasureModule", 1, 0, "MeasureModule",
+  //       "Measure Module is always instantiated in c++ code");
+  //   qmlRegisterUncreatableType<DataSource>(
+  //       "DataSource", 1, 0, "DataSource",
+  //       "Data Source is always instantiated in c++ code");
   //  qmlRegisterType<MeasureModule>("MeasureModule", 1, 0, "MeasureModule");
   //  qmlRegisterType<DataSource>("DataSource", 1, 0, "DataSource");
 
+  qmlRegisterSingletonType<GraphDataModule>("Qt.analyzer.graphModule",
+                                            1,
+                                            0,
+                                            "GraphModule",
+                                            GraphDataModule::singletonProvider);
+
   engine.rootContext()->setContextProperty("dataSource", &dataSource);
-  //  engine.rootContext()->setContextProperty("measureObj", &measureObj);
 
   engine.load(QUrl("qrc:///qml/main.qml"));
   return app.exec();

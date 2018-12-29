@@ -1,13 +1,12 @@
 #ifndef GRAPHDATAMODULE_H
 #define GRAPHDATAMODULE_H
 
+#include <QAbstractAxis>
 #include <QMutex>
 #include <QObject>
+#include <QQmlApplicationEngine>
 #include <QReadLocker>
-#include <QReadWriteLock>
-#include <QWaitCondition>
-#include <QtCharts/QAbstractSeries>
-#include <QtCharts/QXYSeries>
+#include <QXYSeries>
 
 QT_BEGIN_NAMESPACE
 class QQuickView;
@@ -19,17 +18,29 @@ class GraphDataModule : public QObject
 {
   Q_OBJECT
 public:
-  explicit GraphDataModule(const QList<QList<QPointF>*>& dataList);
+  GraphDataModule(QList<QList<QPointF>*>& allData, QReadWriteLock* allDataLock);
+  static QObject* singletonProvider(QQmlEngine* engine,
+                                    QJSEngine* scriptEngine);
+
 signals:
   void graphDataFinished();
 
 public slots:
-  void updateSeriesRef(QVariantList rawSerie);
-  void updateLineSeries();
+  void setGuiSource(QObject* graphGUI);
+  void updateModule(void);
+
+  void changeSerieName(const int serieIndex, const QString newName);
+  void changeSerieDisplay(const int serieIndex, const bool isOn);
+  void addSerie(QVariantList series);
 
 private:
-  const QList<QList<QPointF>*>& m_data;
-  QList<QXYSeries*> serieList;
+  static GraphDataModule* singleton;
+
+  QMutex serieMutex_;
+  QReadWriteLock* allDataLock_;
+  QList<QXYSeries*> series_;
+  QObject* guiObj_;
+  QList<QList<QPointF>*>& allData_;
 };
 
 #endif // GRAPHDATAMODULE_H

@@ -17,6 +17,9 @@
         <file>qml/resources/analytics.png</file>
         <file>qml/resources/microchip.png</file>
         <file>qml/LiveTab/ScopeView/ScopeView.qml</file>
+        <file>qml/LiveTab/ScopeView/ScopeView.js</file>
+        <file>qml/LiveTab/ScopeView/Cursor.js</file>
+        <file>qml/LiveTab/ScopeView/Axis.js</file>
         <file>qml/LiveTab/LiveTab.qml</file>
         <file>qml/LiveTab/ControlPanel/MathControl.qml</file>
         <file>qml/LiveTab/ControlPanel/ControlPanel.qml</file>

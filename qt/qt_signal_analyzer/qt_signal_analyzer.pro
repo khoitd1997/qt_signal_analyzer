@@ -22,7 +22,8 @@ SOURCES += \
     c++/loggermodule.cpp \
     c++/mathmodule.cpp \
     c++/scopemodule.cpp \
-    c++/scopeseriemodule.cpp
+    c++/scopeseriemodule.cpp \
+    c++/cursormodule.cpp
 
 RESOURCES += qml.qrc
 
@@ -46,7 +47,8 @@ HEADERS += \
     c++/mathmodule.h \
     c++/scopemodule.h \
     c++/scopeseriemodule.h \
-    c++/scopeconstants.h
+    c++/scopeconstants.h \
+    c++/cursormodule.h
 
 DISTFILES += \
     qmldir
