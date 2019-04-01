@@ -23,7 +23,8 @@ class NRFTimer {
   uint32_t _interval;
   void*    _context;
 
-  void init();
+  static bool _isInitialized;
+  void        init();
 };
 
 #endif
