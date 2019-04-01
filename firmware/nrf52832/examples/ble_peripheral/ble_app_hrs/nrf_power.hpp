@@ -1,5 +1,5 @@
-#ifndef _SIGNAL_ANALYZER_POWER_MANAGER_HPP
-#define _SIGNAL_ANALYZER_POWER_MANAGER_HPP
+#ifndef _NRF_POWER_HPP
+#define _NRF_POWER_HPP
 
 #include <cstdint>
 

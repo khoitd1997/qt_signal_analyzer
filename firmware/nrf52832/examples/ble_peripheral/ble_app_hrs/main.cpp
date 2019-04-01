@@ -90,6 +90,7 @@
 
 #include "nrf_bsp.hpp"
 #include "nrf_power.hpp"
+#include "nrf_timer.hpp"
 
 #define DEVICE_NAME "Signal_Analyzer"
 #define MANUFACTURER_NAME "KhoiTrinh"
@@ -109,16 +110,23 @@
 #define CONN_SUP_TIMEOUT \
   MSEC_TO_UNITS(4000, UNIT_10_MS) /**< Connection supervisory timeout (4 seconds). */
 
-#define FIRST_CONN_PARAMS_UPDATE_DELAY                                                      \
-  APP_TIMER_TICKS(                                                                          \
-      5000) /**< Time from initiating event (connect or start of notification) to \ \ \ \ \ \
-               \ \ \ \ \ \ \                                                          \ \ \ \
-               \ \ \ \ \                                                                                          \
-               \ \ \ \ \ \ \ \ \ first time sd_ble_gap_conn_param_update is called (5 \ \ \ \
-               seconds). */
+#define FIRST_CONN_PARAMS_UPDATE_DELAY                                                            \
+  APP_TIMER_TICKS(                                                                                \
+      5000) /**< Time from initiating event (connect or start of notification) to \ \ \ \ \ \ \ \ \
+               \ \ \ \ \ \ \                                                          \ \ \ \ \ \ \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
+               \ \ \ \ \ \ \ \ \ first time sd_ble_gap_conn_param_update is called (5 \ \ \ \ \ \ \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY                                                              \
   APP_TIMER_TICKS(30000) /**< Time between each call to sd_ble_gap_conn_param_update after the \ \ \
-                            \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ first call (30 seconds). */
+                            \ \ \ \ \ \ \                                                          \
+                            \ \ \ \ \ \ \ \ \                                                                                     \
+                            \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                            \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \
+                            \ \ \ \ \ \ \ \ \ first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT \
   3 /**< Number of attempts before giving up the connection parameter negotiation. */
 
@@ -133,7 +141,33 @@
 
 #define DEAD_BEEF                                                                                  \
   0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location \ \
-                \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on stack unwind. */
+                \                                                                                  \
+                \ \                                                                                                 \
+                \ \ \                                                                                                 \
+                \ \ \ \                                                                                                 \
+                \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on stack unwind. \ \
+                \                                                                                  \
+                \ \                                                                                                 \
+                \ \ \                                                                                                 \
+                \ \ \ \                                                                                                 \
+                \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                \ \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
+              */
 
 NRF_BLE_GATT_DEF(m_gatt);           /**< GATT module instance. */
 NRF_BLE_QWR_DEF(m_qwr);             /**< Context for the Queued Write module.*/
@@ -171,26 +205,6 @@ static void pm_evt_handler(pm_evt_t const *p_evt) {
     default:
       break;
   }
-}
-
-/**@brief Function for the Timer initialization.
- *
- * @details Initializes the timer module. This creates and starts application timers.
- */
-static void timers_init(void) {
-  // Initialize timer module.
-  ret_code_t err_code = app_timer_init();
-  APP_ERROR_CHECK(err_code);
-
-  // Create timers.
-
-  /* YOUR_JOB: Create any timers to be used by the application.
-               Below is an example of how to create a timer.
-               For every new timer needed, increase the value of the macro APP_TIMER_MAX_TIMERS by
-               one.
-     ret_code_t err_code;
-     err_code = app_timer_create(&m_app_timer_id, APP_TIMER_MODE_REPEATED, timer_timeout_handler);
-     APP_ERROR_CHECK(err_code); */
 }
 
 /**@brief Function for the GAP initialization.
@@ -349,15 +363,6 @@ static void conn_params_init(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for starting timers.
- */
-static void application_timers_start(void) {
-  /* YOUR_JOB: Start your timers. below is an example of how to start a timer.
-     ret_code_t err_code;
-     err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
-     APP_ERROR_CHECK(err_code); */
-}
-
 /**@brief Function for handling advertising events.
  *
  * @details This function will be called for advertising events which are passed to the application.
@@ -505,10 +510,6 @@ static void delete_bonds(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for handling events from the BSP module.
- *
- * @param[in]   event   Event generated when button is pressed.
- */
 static void bsp_event_handler(bsp_event_t event) {
   ret_code_t err_code;
 
@@ -581,6 +582,8 @@ static void advertising_start(bool erase_bonds) {
   }
 }
 
+static void testHandler(void *context) { NRF_LOG_INFO("Got Number: %d", *((int *)context)); }
+
 int main(void) {
   bool erase_bonds;
 
@@ -588,8 +591,6 @@ int main(void) {
   ret_code_t err_code = NRF_LOG_INIT(NULL);
   APP_ERROR_CHECK(err_code);
   NRF_LOG_DEFAULT_BACKENDS_INIT();
-
-  timers_init();
 
   nrf_bsp::init(&erase_bonds, bsp_event_handler);
   nrf_power::init();
@@ -604,7 +605,7 @@ int main(void) {
 
   // Start execution.
   NRF_LOG_INFO("Template example started.");
-  application_timers_start();
+  t();
 
   advertising_start(erase_bonds);
 
