@@ -90,6 +90,7 @@
 
 #include "nrf_bsp.hpp"
 #include "nrf_power.hpp"
+#include "nrf_service.hpp"
 #include "nrf_timer.hpp"
 
 #define DEVICE_NAME "Signal_Analyzer"
@@ -114,17 +115,17 @@
   APP_TIMER_TICKS(                                                                                \
       5000) /**< Time from initiating event (connect or start of notification) to \ \ \ \ \ \ \ \ \
                \ \ \ \ \ \ \                                                          \ \ \ \ \ \ \
-               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
-               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
-               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
-               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                                            \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                              \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                \
+               \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \                          \
                \ \ \ \ \ \ \ \ \ first time sd_ble_gap_conn_param_update is called (5 \ \ \ \ \ \ \
                \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ seconds). */
 #define NEXT_CONN_PARAMS_UPDATE_DELAY                                                              \
   APP_TIMER_TICKS(30000) /**< Time between each call to sd_ble_gap_conn_param_update after the \ \ \
                             \ \ \ \ \ \ \                                                          \
-                            \ \ \ \ \ \ \ \ \                                                                                     \
-                            \ \ \ \ \ \ \ \ \ \                                                                                                 \
+                            \ \ \ \ \ \ \ \ \                                                      \
+                            \ \ \ \ \ \ \ \ \ \                                                    \
                             \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \
                             \ \ \ \ \ \ \ \ \ first call (30 seconds). */
 #define MAX_CONN_PARAMS_UPDATE_COUNT \
@@ -139,38 +140,10 @@
 #define SEC_PARAM_MIN_KEY_SIZE 7                       /**< Minimum encryption key size. */
 #define SEC_PARAM_MAX_KEY_SIZE 16                      /**< Maximum encryption key size. */
 
-#define DEAD_BEEF                                                                                  \
-  0xDEADBEEF /**< Value used as error code on stack dump, can be used to identify stack location \ \
-                \                                                                                  \
-                \ \                                                                                                 \
-                \ \ \                                                                                                 \
-                \ \ \ \                                                                                                 \
-                \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ on stack unwind. \ \
-                \                                                                                  \
-                \ \                                                                                                 \
-                \ \ \                                                                                                 \
-                \ \ \ \                                                                                                 \
-                \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
-                \ \ \ \ \ \ \ \ \ \ \ \                                                                                                 \
-              */
+#define DEAD_BEEF 0xDEADBEEF
 
-NRF_BLE_GATT_DEF(m_gatt);           /**< GATT module instance. */
-NRF_BLE_QWR_DEF(m_qwr);             /**< Context for the Queued Write module.*/
+NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
+
 BLE_ADVERTISING_DEF(m_advertising); /**< Advertising module instance. */
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
@@ -245,15 +218,6 @@ static void gatt_init(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for handling Queued Write Module errors.
- *
- * @details A pointer to this function will be passed to each service which may need to inform the
- *          application about an error.
- *
- * @param[in]   nrf_error   Error code containing information about what went wrong.
- */
-static void nrf_qwr_error_handler(uint32_t nrf_error) { APP_ERROR_HANDLER(nrf_error); }
-
 /**@brief Function for handling the YYY Service events.
  * YOUR_JOB implement a service handler function depending on the event the service you are using
 can generate
@@ -280,42 +244,6 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
     }
 }
 */
-
-/**@brief Function for initializing services that will be used by the application.
- */
-static void services_init(void) {
-  ret_code_t         err_code;
-  nrf_ble_qwr_init_t qwr_init = {0};
-
-  // Initialize Queued Write Module.
-  qwr_init.error_handler = nrf_qwr_error_handler;
-
-  err_code = nrf_ble_qwr_init(&m_qwr, &qwr_init);
-  APP_ERROR_CHECK(err_code);
-
-  /* YOUR_JOB: Add code to initialize the services used by the application.
-     ble_xxs_init_t                     xxs_init;
-     ble_yys_init_t                     yys_init;
-
-     // Initialize XXX Service.
-     memset(&xxs_init, 0, sizeof(xxs_init));
-
-     xxs_init.evt_handler                = NULL;
-     xxs_init.is_xxx_notify_supported    = true;
-     xxs_init.ble_xx_initial_value.level = 100;
-
-     err_code = ble_bas_init(&m_xxs, &xxs_init);
-     APP_ERROR_CHECK(err_code);
-
-     // Initialize YYY Service.
-     memset(&yys_init, 0, sizeof(yys_init));
-     yys_init.evt_handler                  = on_yys_evt;
-     yys_init.ble_yy_initial_value.counter = 0;
-
-     err_code = ble_yy_service_init(&yys_init, &yy_init);
-     APP_ERROR_CHECK(err_code);
-   */
-}
 
 /**@brief Function for handling the Connection Parameters Module.
  *
@@ -407,7 +335,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
       err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
       APP_ERROR_CHECK(err_code);
       m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-      err_code      = nrf_ble_qwr_conn_handle_assign(&m_qwr, m_conn_handle);
+      err_code      = nrf_ble_qwr_conn_handle_assign(&NRFService::qwr, m_conn_handle);
       APP_ERROR_CHECK(err_code);
       break;
 
@@ -582,7 +510,9 @@ static void advertising_start(bool erase_bonds) {
   }
 }
 
-static void testHandler(void *context) { NRF_LOG_INFO("Got Number: %d", *((int *)context)); }
+static void testHandler(void *context) {
+  // NRF_LOG_INFO("Got Number: ");
+}
 
 int main(void) {
   bool erase_bonds;
@@ -592,6 +522,8 @@ int main(void) {
   APP_ERROR_CHECK(err_code);
   NRF_LOG_DEFAULT_BACKENDS_INIT();
 
+  NRFTimer nrfTimer(5, nullptr, APP_TIMER_MODE_REPEATED, testHandler);
+
   nrf_bsp::init(&erase_bonds, bsp_event_handler);
   nrf_power::init();
 
@@ -599,13 +531,14 @@ int main(void) {
   gap_params_init();
   gatt_init();
   advertising_init();
-  services_init();
+  NRFService nrfService();
+  //   services_init();
   conn_params_init();
   peer_manager_init();
 
   // Start execution.
   NRF_LOG_INFO("Template example started.");
-  t();
+  nrfTimer.start();
 
   advertising_start(erase_bonds);
 
