@@ -196,7 +196,7 @@
       Name="Release"
       gcc_c_language_standard="gnu11"
       gcc_cplusplus_language_standard="gnu++14" />
-    <configuration Name="Debug" gcc_cplusplus_language_standard="gnu++14" />
+    <configuration Name="Debug" gcc_cplusplus_language_standard="gnu++11" />
   </project>
   <configuration
     Name="Release"

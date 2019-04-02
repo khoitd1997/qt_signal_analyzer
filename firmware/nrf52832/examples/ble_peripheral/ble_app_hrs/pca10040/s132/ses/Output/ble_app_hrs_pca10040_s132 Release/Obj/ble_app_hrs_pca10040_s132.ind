@@ -71,6 +71,7 @@
 "Output/ble_app_hrs_pca10040_s132 Release/Obj/nrf_bsp.o"
 "Output/ble_app_hrs_pca10040_s132 Release/Obj/nrf_timer.o"
 "Output/ble_app_hrs_pca10040_s132 Release/Obj/nrf_service.o"
+"Output/ble_app_hrs_pca10040_s132 Release/Obj/nrf_conn_params.o"
 "Output/ble_app_hrs_pca10040_s132 Release/Obj/SEGGER_RTT.o"
 "Output/ble_app_hrs_pca10040_s132 Release/Obj/SEGGER_RTT_Syscalls_SES.o"
 "Output/ble_app_hrs_pca10040_s132 Release/Obj/SEGGER_RTT_printf.o"

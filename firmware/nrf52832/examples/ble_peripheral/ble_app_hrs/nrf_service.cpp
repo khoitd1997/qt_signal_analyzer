@@ -25,22 +25,31 @@
 #include "nrf_sdh_ble.h"
 #include "nrf_sdh_soc.h"
 
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
+
 bool NRFService::_isInitialized = false;
 
 NRF_BLE_QWR_DEF(_qwr);
 nrf_ble_qwr_t& NRFService::qwr = _qwr;
 
-NRFService::NRFService() { init(); }
+NRFService::NRFService() {
+  NRF_LOG_INFO("NRFService Construction");
+  init();
+}
 
 void NRFService::errorHandler(uint32_t nrf_error) { APP_ERROR_HANDLER(nrf_error); }
 
 void NRFService::init() {
+  NRF_LOG_INFO("Checking init");
   if (!_isInitialized) {
+    NRF_LOG_INFO("Initializing service");
     nrf_ble_qwr_init_t qwr_init = {0};
 
     qwr_init.error_handler = NRFService::errorHandler;
 
-    auto err_code = nrf_ble_qwr_init(&qwr, &qwr_init);
+    auto err_code = nrf_ble_qwr_init(&_qwr, &qwr_init);
     APP_ERROR_CHECK(err_code);
     _isInitialized = true;
   }

@@ -161,6 +161,7 @@ static ble_uuid_t m_adv_uuids[] = /**< Universally unique service identifiers. *
 static void advertising_start(bool erase_bonds);
 
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name) {
+  NRF_LOG_INFO("Assert callback");
   app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
@@ -174,6 +175,7 @@ static void pm_evt_handler(pm_evt_t const *p_evt) {
 
   switch (p_evt->evt_id) {
     case PM_EVT_PEERS_DELETE_SUCCEEDED:
+      NRF_LOG_INFO("PM peer delete succeeded");
       advertising_start(false);
       break;
 
@@ -445,15 +447,18 @@ static void bsp_event_handler(bsp_event_t event) {
 
   switch (event) {
     case BSP_EVENT_SLEEP:
+      NRF_LOG_INFO("Sleep");
       nrf_power::sleep();
       break;  // BSP_EVENT_SLEEP
 
     case BSP_EVENT_DISCONNECT:
+      NRF_LOG_INFO("Disconnect");
       err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
       if (err_code != NRF_ERROR_INVALID_STATE) { APP_ERROR_CHECK(err_code); }
       break;  // BSP_EVENT_DISCONNECT
 
     case BSP_EVENT_WHITELIST_OFF:
+      NRF_LOG_INFO("Whitelist OFF");
       if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
         err_code = ble_advertising_restart_without_whitelist(&m_advertising);
         if (err_code != NRF_ERROR_INVALID_STATE) { APP_ERROR_CHECK(err_code); }
@@ -524,7 +529,7 @@ int main(void) {
   APP_ERROR_CHECK(err_code);
   NRF_LOG_DEFAULT_BACKENDS_INIT();
 
-  NRFTimer nrfTimer(5, nullptr, APP_TIMER_MODE_REPEATED, testHandler);
+  NRFTimer nrfTimer(5, NULL, APP_TIMER_MODE_REPEATED, testHandler);
 
   nrf_bsp::init(&erase_bonds, bsp_event_handler);
   nrf_power::init();
@@ -533,9 +538,10 @@ int main(void) {
   gap_params_init();
   gatt_init();
   advertising_init();
-  NRFService nrfService();
+  NRF_LOG_INFO("nrf service main");
+  NRFService nrfService;
   //   services_init();
-  nrf_ble::nrf_conn_params::init(nullptr);
+  nrf_ble::nrf_conn_params::init(NULL);
   //   conn_params_init();
   peer_manager_init();
 
