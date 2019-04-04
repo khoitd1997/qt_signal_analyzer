@@ -126,7 +126,6 @@
     <folder Name="Application">
       <file file_name="../config/sdk_config.h" />
       <file file_name="../../../main.cpp" />
-      <file file_name="../../../nrf_power.cpp" />
       <file file_name="../../../nrf_power.hpp" />
       <file file_name="../../../nrf_bsp.cpp" />
       <file file_name="../../../nrf_bsp.hpp" />
@@ -134,9 +133,16 @@
       <file file_name="../../../nrf_timer.hpp" />
       <file file_name="../../../nrf_service.cpp" />
       <file file_name="../../../nrf_service.hpp" />
-      <file file_name="../../../nrf_ble/nrf_ble_conf.hpp" />
-      <file file_name="../../../nrf_ble/nrf_conn_params.cpp" />
-      <file file_name="../../../nrf_ble/nrf_conn_params.hpp" />
+      <folder Name="nrf_ble">
+        <file file_name="../../../nrf_ble/nrf_ble_conf.hpp" />
+        <file file_name="../../../nrf_ble/nrf_conn_params.cpp" />
+        <file file_name="../../../nrf_ble/nrf_conn_params.hpp" />
+        <file file_name="../../../nrf_ble/nrf_advertise.cpp" />
+        <file file_name="../../../nrf_ble/nrf_advertise.hpp" />
+        <file file_name="../../../nrf_ble/nrf_peer_manager.cpp" />
+        <file file_name="../../../nrf_ble/nrf_peer_manager.hpp" />
+      </folder>
+      <file file_name="../../../nrf_power.cpp" />
     </folder>
     <folder Name="nRF_Segger_RTT">
       <file file_name="../../../../../../external/segger_rtt/SEGGER_RTT.c" />

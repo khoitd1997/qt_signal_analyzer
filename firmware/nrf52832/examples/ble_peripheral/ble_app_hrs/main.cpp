@@ -93,7 +93,9 @@
 #include "nrf_service.hpp"
 #include "nrf_timer.hpp"
 
+#include "nrf_ble/nrf_advertise.hpp"
 #include "nrf_ble/nrf_conn_params.hpp"
+#include "nrf_ble/nrf_peer_manager.hpp"
 
 #define DEVICE_NAME "Signal_Analyzer"
 #define MANUFACTURER_NAME "KhoiTrinh"
@@ -133,32 +135,11 @@
 // #define MAX_CONN_PARAMS_UPDATE_COUNT \
 //   3 /**< Number of attempts before giving up the connection parameter negotiation. */
 
-#define SEC_PARAM_BOND 1     /**< Perform bonding. */
-#define SEC_PARAM_MITM 0     /**< Man In The Middle protection not required. */
-#define SEC_PARAM_LESC 0     /**< LE Secure Connections not enabled. */
-#define SEC_PARAM_KEYPRESS 0 /**< Keypress notifications not enabled. */
-#define SEC_PARAM_IO_CAPABILITIES BLE_GAP_IO_CAPS_NONE /**< No I/O capabilities. */
-#define SEC_PARAM_OOB 0                                /**< Out Of Band data not available. */
-#define SEC_PARAM_MIN_KEY_SIZE 7                       /**< Minimum encryption key size. */
-#define SEC_PARAM_MAX_KEY_SIZE 16                      /**< Maximum encryption key size. */
-
 #define DEAD_BEEF 0xDEADBEEF
 
 NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
 
-BLE_ADVERTISING_DEF(m_advertising); /**< Advertising module instance. */
-
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
-
-/* YOUR_JOB: Declare all services structure your application is using
- *  BLE_XYZ_DEF(m_xyz);
- */
-
-// YOUR_JOB: Use UUIDs for service(s) used in your application.
-static ble_uuid_t m_adv_uuids[] = /**< Universally unique service identifiers. */
-    {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUID_TYPE_BLE}};
-
-static void advertising_start(bool erase_bonds);
 
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name) {
   NRF_LOG_INFO("Assert callback");
@@ -176,7 +157,7 @@ static void pm_evt_handler(pm_evt_t const *p_evt) {
   switch (p_evt->evt_id) {
     case PM_EVT_PEERS_DELETE_SUCCEEDED:
       NRF_LOG_INFO("PM peer delete succeeded");
-      advertising_start(false);
+      nrf_ble::nrf_advertise::start(false, BLE_ADV_MODE_FAST);
       break;
 
     default:
@@ -222,79 +203,6 @@ static void gatt_init(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for handling the YYY Service events.
- * YOUR_JOB implement a service handler function depending on the event the service you are using
-can generate
- *
- * @details This function will be called for all YY Service events which are passed to
- *          the application.
- *
- * @param[in]   p_yy_service   YY Service structure.
- * @param[in]   p_evt          Event received from the YY Service.
- *
- *
-static void on_yys_evt(ble_yy_service_t     * p_yy_service,
-                       ble_yy_service_evt_t * p_evt)
-{
-    switch (p_evt->evt_type)
-    {
-        case BLE_YY_NAME_EVT_WRITE:
-            APPL_LOG("[APPL]: charact written with value %s. ", p_evt->params.char_xx.value.p_str);
-            break;
-
-        default:
-            // No implementation needed.
-            break;
-    }
-}
-*/
-
-// /**@brief Function for handling the Connection Parameters Module.
-//  *
-//  * @details This function will be called for all events in the Connection Parameters Module which
-//  *          are passed to the application.
-//  *          @note All this function does is to disconnect. This could have been done by simply
-//  *                setting the disconnect_on_fail config parameter, but instead we use the event
-//  *                handler mechanism to demonstrate its use.
-//  *
-//  * @param[in] p_evt  Event received from the Connection Parameters Module.
-//  */
-// static void on_conn_params_evt(ble_conn_params_evt_t *p_evt) {
-//   ret_code_t err_code;
-
-//   if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED) {
-//     err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
-//     APP_ERROR_CHECK(err_code);
-//   }
-// }
-
-// /**@brief Function for handling a Connection Parameters error.
-//  *
-//  * @param[in] nrf_error  Error code containing information about what went wrong.
-//  */
-// static void conn_params_error_handler(uint32_t nrf_error) { APP_ERROR_HANDLER(nrf_error); }
-
-// /**@brief Function for initializing the Connection Parameters module.
-//  */
-// static void conn_params_init(void) {
-//   ret_code_t             err_code;
-//   ble_conn_params_init_t cp_init;
-
-//   memset(&cp_init, 0, sizeof(cp_init));
-
-//   cp_init.p_conn_params                  = NULL;
-//   cp_init.first_conn_params_update_delay = FIRST_CONN_PARAMS_UPDATE_DELAY;
-//   cp_init.next_conn_params_update_delay  = NEXT_CONN_PARAMS_UPDATE_DELAY;
-//   cp_init.max_conn_params_update_count   = MAX_CONN_PARAMS_UPDATE_COUNT;
-//   cp_init.start_on_notify_cccd_handle    = BLE_GATT_HANDLE_INVALID;
-//   cp_init.disconnect_on_fail             = false;
-//   cp_init.evt_handler                    = on_conn_params_evt;
-//   cp_init.error_handler                  = conn_params_error_handler;
-
-//   err_code = ble_conn_params_init(&cp_init);
-//   APP_ERROR_CHECK(err_code);
-// }
-
 /**@brief Function for handling advertising events.
  *
  * @details This function will be called for advertising events which are passed to the application.
@@ -319,6 +227,18 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
       break;
   }
 }
+
+static void on_conn_params_evt(ble_conn_params_evt_t *p_evt) {
+  ret_code_t err_code;
+
+  if (p_evt->evt_type == BLE_CONN_PARAMS_EVT_FAILED) {
+    NRF_LOG_INFO("Conn Param Event Failed");
+    err_code = sd_ble_gap_disconnect(p_evt->conn_handle, BLE_HCI_CONN_INTERVAL_UNACCEPTABLE);
+    APP_ERROR_CHECK(err_code);
+  }
+}
+
+static void conn_params_error_handler(uint32_t nrf_error) { APP_ERROR_HANDLER(nrf_error); }
 
 /**@brief Function for handling BLE events.
  *
@@ -399,49 +319,6 @@ static void ble_stack_init(void) {
   NRF_SDH_BLE_OBSERVER(m_ble_observer, APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 }
 
-/**@brief Function for the Peer Manager initialization.
- */
-static void peer_manager_init(void) {
-  ble_gap_sec_params_t sec_param;
-  ret_code_t           err_code;
-
-  err_code = pm_init();
-  APP_ERROR_CHECK(err_code);
-
-  memset(&sec_param, 0, sizeof(ble_gap_sec_params_t));
-
-  // Security parameters to be used for all security procedures.
-  sec_param.bond           = SEC_PARAM_BOND;
-  sec_param.mitm           = SEC_PARAM_MITM;
-  sec_param.lesc           = SEC_PARAM_LESC;
-  sec_param.keypress       = SEC_PARAM_KEYPRESS;
-  sec_param.io_caps        = SEC_PARAM_IO_CAPABILITIES;
-  sec_param.oob            = SEC_PARAM_OOB;
-  sec_param.min_key_size   = SEC_PARAM_MIN_KEY_SIZE;
-  sec_param.max_key_size   = SEC_PARAM_MAX_KEY_SIZE;
-  sec_param.kdist_own.enc  = 1;
-  sec_param.kdist_own.id   = 1;
-  sec_param.kdist_peer.enc = 1;
-  sec_param.kdist_peer.id  = 1;
-
-  err_code = pm_sec_params_set(&sec_param);
-  APP_ERROR_CHECK(err_code);
-
-  err_code = pm_register(pm_evt_handler);
-  APP_ERROR_CHECK(err_code);
-}
-
-/**@brief Clear bond information from persistent storage.
- */
-static void delete_bonds(void) {
-  ret_code_t err_code;
-
-  NRF_LOG_INFO("Erase bonds!");
-
-  err_code = pm_peers_delete();
-  APP_ERROR_CHECK(err_code);
-}
-
 static void bsp_event_handler(bsp_event_t event) {
   ret_code_t err_code;
 
@@ -460,7 +337,7 @@ static void bsp_event_handler(bsp_event_t event) {
     case BSP_EVENT_WHITELIST_OFF:
       NRF_LOG_INFO("Whitelist OFF");
       if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
-        err_code = ble_advertising_restart_without_whitelist(&m_advertising);
+        err_code = ble_advertising_restart_without_whitelist(&nrf_ble::nrf_advertise::advertiseMod);
         if (err_code != NRF_ERROR_INVALID_STATE) { APP_ERROR_CHECK(err_code); }
       }
       break;  // BSP_EVENT_KEY_0
@@ -468,32 +345,6 @@ static void bsp_event_handler(bsp_event_t event) {
     default:
       break;
   }
-}
-
-/**@brief Function for initializing the Advertising functionality.
- */
-static void advertising_init(void) {
-  ret_code_t             err_code;
-  ble_advertising_init_t init;
-
-  memset(&init, 0, sizeof(init));
-
-  init.advdata.name_type               = BLE_ADVDATA_FULL_NAME;
-  init.advdata.include_appearance      = true;
-  init.advdata.flags                   = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
-  init.advdata.uuids_complete.uuid_cnt = sizeof(m_adv_uuids) / sizeof(m_adv_uuids[0]);
-  init.advdata.uuids_complete.p_uuids  = m_adv_uuids;
-
-  init.config.ble_adv_fast_enabled  = true;
-  init.config.ble_adv_fast_interval = APP_ADV_INTERVAL;
-  init.config.ble_adv_fast_timeout  = APP_ADV_DURATION;
-
-  init.evt_handler = on_adv_evt;
-
-  err_code = ble_advertising_init(&m_advertising, &init);
-  APP_ERROR_CHECK(err_code);
-
-  ble_advertising_conn_cfg_tag_set(&m_advertising, APP_BLE_CONN_CFG_TAG);
 }
 
 /**@brief Function for handling the idle state (main loop).
@@ -504,19 +355,6 @@ static void idle_state_handle(void) {
   if (NRF_LOG_PROCESS() == false) { nrf_pwr_mgmt_run(); }
 }
 
-/**@brief Function for starting advertising.
- */
-static void advertising_start(bool erase_bonds) {
-  if (erase_bonds == true) {
-    delete_bonds();
-    // Advertising is started by PM_EVT_PEERS_DELETED_SUCEEDED event
-  } else {
-    ret_code_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-
-    APP_ERROR_CHECK(err_code);
-  }
-}
-
 static void testHandler(void *context) {
   // NRF_LOG_INFO("Got Number: ");
 }
@@ -525,7 +363,7 @@ int main(void) {
   bool erase_bonds;
 
   // log init
-  ret_code_t err_code = NRF_LOG_INIT(NULL);
+  auto err_code = NRF_LOG_INIT(NULL);
   APP_ERROR_CHECK(err_code);
   NRF_LOG_DEFAULT_BACKENDS_INIT();
 
@@ -537,19 +375,19 @@ int main(void) {
   ble_stack_init();
   gap_params_init();
   gatt_init();
-  advertising_init();
+  nrf_ble::nrf_advertise::init(on_adv_evt);
   NRF_LOG_INFO("nrf service main");
   NRFService nrfService;
   //   services_init();
-  nrf_ble::nrf_conn_params::init(NULL);
+  nrf_ble::nrf_conn_params::init(NULL, on_conn_params_evt, conn_params_error_handler);
   //   conn_params_init();
-  peer_manager_init();
+  nrf_ble::nrf_peer_manager::init(pm_evt_handler);
 
   // Start execution.
   NRF_LOG_INFO("Template example started.");
   nrfTimer.start();
 
-  advertising_start(erase_bonds);
+  nrf_ble::nrf_advertise::start(erase_bonds, BLE_ADV_MODE_FAST);
 
   // Enter main loop.
   for (;;) { idle_state_handle(); }
