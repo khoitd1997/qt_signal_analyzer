@@ -13,12 +13,14 @@
 
 namespace nrf_ble {
 namespace nrf_ble_conf {
+// conn_params
 static const uint32_t FIRST_CONN_PARAMS_UPDATE_DELAY = 5000;
 static const uint32_t NEXT_CONN_PARAMS_UPDATE_DELAY  = 3000;
 static const uint8_t  MAX_CONN_PARAMS_UPDATE_COUNT   = 3;
 static const uint16_t CCCD_HANDLE                    = BLE_GATT_HANDLE_INVALID;
 static const bool     DISCONNECT_ON_FAIL             = false;
 
+// advertise
 static const ble_advdata_name_type_t APP_ADV_NAME               = BLE_ADVDATA_FULL_NAME;
 static const bool                    APP_ADV_INCLUDE_APPEARANCE = true;
 static const uint8_t                 APP_ADV_FLAG = BLE_GAP_ADV_FLAGS_LE_ONLY_GENERAL_DISC_MODE;
@@ -30,6 +32,7 @@ static const uint32_t APP_ADV_DURATION = 18000;
 static const uint8_t  APP_BLE_OBSERVER_PRIO = 3;
 static const uint8_t  APP_BLE_CONN_CFG_TAG  = 1;
 
+// peer_manager
 static const uint8_t SEC_PARAM_BOND            = 1;
 static const uint8_t SEC_PARAM_MITM            = 0;
 static const uint8_t SEC_PARAM_LESC            = 0;
