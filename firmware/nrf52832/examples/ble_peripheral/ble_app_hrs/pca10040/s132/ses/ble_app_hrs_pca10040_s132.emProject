@@ -141,6 +141,8 @@
         <file file_name="../../../nrf_ble/nrf_advertise.hpp" />
         <file file_name="../../../nrf_ble/nrf_peer_manager.cpp" />
         <file file_name="../../../nrf_ble/nrf_peer_manager.hpp" />
+        <file file_name="../../../nrf_ble/nrf_ble.cpp" />
+        <file file_name="../../../nrf_ble/nrf_ble.hpp" />
       </folder>
       <file file_name="../../../nrf_power.cpp" />
     </folder>

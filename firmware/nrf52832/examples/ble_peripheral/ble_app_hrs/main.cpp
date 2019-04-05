@@ -94,6 +94,7 @@
 #include "nrf_timer.hpp"
 
 #include "nrf_ble/nrf_advertise.hpp"
+#include "nrf_ble/nrf_ble.hpp"
 #include "nrf_ble/nrf_ble_conf.hpp"
 #include "nrf_ble/nrf_conn_params.hpp"
 #include "nrf_ble/nrf_peer_manager.hpp"
@@ -214,13 +215,9 @@ static void on_conn_params_evt(ble_conn_params_evt_t *p_evt) {
 
 static void conn_params_error_handler(uint32_t nrf_error) { APP_ERROR_HANDLER(nrf_error); }
 
-/**@brief Function for handling BLE events.
- *
- * @param[in]   p_ble_evt   Bluetooth stack event.
- * @param[in]   p_context   Unused.
- */
-static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
+void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
   ret_code_t err_code = NRF_SUCCESS;
+  NRF_LOG_INFO("event handler");
 
   switch (p_ble_evt->header.evt_id) {
     case BLE_GAP_EVT_DISCONNECTED:
@@ -267,31 +264,6 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
       // No implementation needed.
       break;
   }
-}
-
-/**@brief Function for initializing the BLE stack.
- *
- * @details Initializes the SoftDevice and the BLE event interrupt.
- */
-static void ble_stack_init(void) {
-  ret_code_t err_code;
-
-  err_code = nrf_sdh_enable_request();
-  APP_ERROR_CHECK(err_code);
-
-  // Configure the BLE stack using the default settings.
-  // Fetch the start address of the application RAM.
-  uint32_t ram_start = 0;
-  err_code = nrf_sdh_ble_default_cfg_set(nrf_ble::nrf_ble_conf::APP_BLE_CONN_CFG_TAG, &ram_start);
-  APP_ERROR_CHECK(err_code);
-
-  // Enable BLE stack.
-  err_code = nrf_sdh_ble_enable(&ram_start);
-  APP_ERROR_CHECK(err_code);
-
-  // Register a handler for BLE events.
-  NRF_SDH_BLE_OBSERVER(
-      m_ble_observer, nrf_ble::nrf_ble_conf::APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
 }
 
 static void bsp_event_handler(bsp_event_t event) {
@@ -347,15 +319,17 @@ int main(void) {
   nrf_bsp::init(&erase_bonds, bsp_event_handler);
   nrf_power::init();
 
-  ble_stack_init();
+  nrf_ble::init();
+  // register here since it won't work in init function
+  // the handler needs to be static func in same file
+  NRF_SDH_BLE_OBSERVER(
+      m_ble_observer, nrf_ble::nrf_ble_conf::APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
+
   gap_params_init();
   gatt_init();
   nrf_ble::nrf_advertise::init(on_adv_evt);
-  NRF_LOG_INFO("nrf service main");
   NRFService nrfService;
-  //   services_init();
   nrf_ble::nrf_conn_params::init(NULL, on_conn_params_evt, conn_params_error_handler);
-  //   conn_params_init();
   nrf_ble::nrf_peer_manager::init(pm_evt_handler);
 
   // Start execution.

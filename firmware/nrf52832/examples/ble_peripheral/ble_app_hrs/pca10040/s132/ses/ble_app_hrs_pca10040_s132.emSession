@@ -24,6 +24,7 @@
   <ProjectSessionItem path="ble_app_hrs_pca10040_s132"/>
   <ProjectSessionItem path="ble_app_hrs_pca10040_s132;ble_app_hrs_pca10040_s132"/>
   <ProjectSessionItem path="ble_app_hrs_pca10040_s132;ble_app_hrs_pca10040_s132;Application"/>
+  <ProjectSessionItem path="ble_app_hrs_pca10040_s132;ble_app_hrs_pca10040_s132;Application;nrf_ble"/>
   <ProjectSessionItem path="ble_app_hrs_pca10040_s132;ble_app_hrs_pca10040_s132;nRF_Libraries"/>
  </Project>
  <Register1>
@@ -57,9 +58,8 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="19" y="547" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.cpp" selected="0" top="523" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="234" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../../../../components/libraries/util/app_util.h" selected="0" top="225" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="14" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../nrf_service.hpp" selected="1" top="0" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="68" y="86" useTextEdit="1" useBinaryEdit="0" left="12" path="../../../nrf_ble/nrf_ble.cpp" selected="1" top="54" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="25" y="350" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.cpp" selected="0" top="318" codecName="Default"/>
  </Files>
  <ARMCrossStudioWindow activeProject="ble_app_hrs_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="/home/kd/qt_signal_analyzer/firmware/nrf52832/examples/ble_peripheral/ble_app_hrs/nrf_ble" debugSearchPath="" autoConnectCapabilities="3711"/>
 </session>

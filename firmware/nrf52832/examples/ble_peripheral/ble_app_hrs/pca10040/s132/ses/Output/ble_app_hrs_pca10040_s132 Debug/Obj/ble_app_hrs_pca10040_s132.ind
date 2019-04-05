@@ -73,6 +73,7 @@
 "Output/ble_app_hrs_pca10040_s132 Debug/Obj/nrf_conn_params.o"
 "Output/ble_app_hrs_pca10040_s132 Debug/Obj/nrf_advertise.o"
 "Output/ble_app_hrs_pca10040_s132 Debug/Obj/nrf_peer_manager.o"
+"Output/ble_app_hrs_pca10040_s132 Debug/Obj/nrf_ble.o"
 "Output/ble_app_hrs_pca10040_s132 Debug/Obj/nrf_power.o"
 "Output/ble_app_hrs_pca10040_s132 Debug/Obj/SEGGER_RTT.o"
 "Output/ble_app_hrs_pca10040_s132 Debug/Obj/SEGGER_RTT_Syscalls_SES.o"
