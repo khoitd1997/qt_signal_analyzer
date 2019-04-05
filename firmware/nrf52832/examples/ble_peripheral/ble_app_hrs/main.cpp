@@ -97,6 +97,7 @@
 #include "nrf_ble/nrf_ble.hpp"
 #include "nrf_ble/nrf_ble_conf.hpp"
 #include "nrf_ble/nrf_conn_params.hpp"
+#include "nrf_ble/nrf_gatt.hpp"
 #include "nrf_ble/nrf_peer_manager.hpp"
 
 #define DEVICE_NAME "Signal_Analyzer"
@@ -111,8 +112,6 @@
   MSEC_TO_UNITS(4000, UNIT_10_MS) /**< Connection supervisory timeout (4 seconds). */
 
 #define DEAD_BEEF 0xDEADBEEF
-
-NRF_BLE_GATT_DEF(m_gatt); /**< GATT module instance. */
 
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
 
@@ -171,13 +170,6 @@ static void gap_params_init(void) {
   APP_ERROR_CHECK(err_code);
 }
 
-/**@brief Function for initializing the GATT module.
- */
-static void gatt_init(void) {
-  ret_code_t err_code = nrf_ble_gatt_init(&m_gatt, NULL);
-  APP_ERROR_CHECK(err_code);
-}
-
 /**@brief Function for handling advertising events.
  *
  * @details This function will be called for advertising events which are passed to the application.
@@ -195,6 +187,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
       break;
 
     case BLE_ADV_EVT_IDLE:
+      NRF_LOG_INFO("Sleeping");
       nrf_power::sleep();
       break;
 
@@ -310,11 +303,11 @@ int main(void) {
   bool erase_bonds;
 
   // log init
-  auto err_code = NRF_LOG_INIT(NULL);
+  auto err_code = NRF_LOG_INIT(nullptr);
   APP_ERROR_CHECK(err_code);
   NRF_LOG_DEFAULT_BACKENDS_INIT();
 
-  NRFTimer nrfTimer(5, NULL, APP_TIMER_MODE_REPEATED, testHandler);
+  NRFTimer nrfTimer(5, nullptr, APP_TIMER_MODE_REPEATED, testHandler);
 
   nrf_bsp::init(&erase_bonds, bsp_event_handler);
   nrf_power::init();
@@ -323,13 +316,14 @@ int main(void) {
   // register here since it won't work in init function
   // the handler needs to be static func in same file
   NRF_SDH_BLE_OBSERVER(
-      m_ble_observer, nrf_ble::nrf_ble_conf::APP_BLE_OBSERVER_PRIO, ble_evt_handler, NULL);
+      m_ble_observer, nrf_ble::nrf_ble_conf::APP_BLE_OBSERVER_PRIO, ble_evt_handler, nullptr);
 
   gap_params_init();
-  gatt_init();
+  nrf_ble::nrf_gatt::init(nullptr);
+
   nrf_ble::nrf_advertise::init(on_adv_evt);
   NRFService nrfService;
-  nrf_ble::nrf_conn_params::init(NULL, on_conn_params_evt, conn_params_error_handler);
+  nrf_ble::nrf_conn_params::init(nullptr, on_conn_params_evt, conn_params_error_handler);
   nrf_ble::nrf_peer_manager::init(pm_evt_handler);
 
   // Start execution.

@@ -42,6 +42,8 @@ static const uint8_t SEC_PARAM_OOB             = 0;
 static const uint8_t SEC_PARAM_MIN_KEY_SIZE    = 7;
 static const uint8_t SEC_PARAM_MAX_KEY_SIZE    = 16;
 
+// gap
+
 }  // namespace nrf_ble_conf
 }  // namespace nrf_ble
 
