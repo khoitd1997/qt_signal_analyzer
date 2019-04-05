@@ -97,33 +97,21 @@
 #include "nrf_ble/nrf_ble.hpp"
 #include "nrf_ble/nrf_ble_conf.hpp"
 #include "nrf_ble/nrf_conn_params.hpp"
+#include "nrf_ble/nrf_gap.hpp"
 #include "nrf_ble/nrf_gatt.hpp"
 #include "nrf_ble/nrf_peer_manager.hpp"
 
-#define DEVICE_NAME "Signal_Analyzer"
 #define MANUFACTURER_NAME "KhoiTrinh"
-
-#define MIN_CONN_INTERVAL \
-  MSEC_TO_UNITS(100, UNIT_1_25_MS) /**< Minimum acceptable connection interval (0.1 seconds). */
-#define MAX_CONN_INTERVAL \
-  MSEC_TO_UNITS(200, UNIT_1_25_MS) /**< Maximum acceptable connection interval (0.2 second). */
-#define SLAVE_LATENCY 0            /**< Slave latency. */
-#define CONN_SUP_TIMEOUT \
-  MSEC_TO_UNITS(4000, UNIT_10_MS) /**< Connection supervisory timeout (4 seconds). */
 
 #define DEAD_BEEF 0xDEADBEEF
 
-static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
+static uint16_t currConnection = BLE_CONN_HANDLE_INVALID;
 
 void assert_nrf_callback(uint16_t line_num, const uint8_t *p_file_name) {
   NRF_LOG_INFO("Assert callback");
   app_error_handler(DEAD_BEEF, line_num, p_file_name);
 }
 
-/**@brief Function for handling Peer Manager events.
- *
- * @param[in] p_evt  Peer Manager event.
- */
 static void pm_evt_handler(pm_evt_t const *p_evt) {
   pm_handler_on_pm_evt(p_evt);
   pm_handler_flash_clean(p_evt);
@@ -139,43 +127,6 @@ static void pm_evt_handler(pm_evt_t const *p_evt) {
   }
 }
 
-/**@brief Function for the GAP initialization.
- *
- * @details This function sets up all the necessary GAP (Generic Access Profile) parameters of the
- *          device including the device name, appearance, and the preferred connection parameters.
- */
-static void gap_params_init(void) {
-  ret_code_t              err_code;
-  ble_gap_conn_params_t   gap_conn_params;
-  ble_gap_conn_sec_mode_t sec_mode;
-
-  BLE_GAP_CONN_SEC_MODE_SET_OPEN(&sec_mode);
-
-  err_code =
-      sd_ble_gap_device_name_set(&sec_mode, (const uint8_t *)DEVICE_NAME, strlen(DEVICE_NAME));
-  APP_ERROR_CHECK(err_code);
-
-  /* YOUR_JOB: Use an appearance value matching the application's use case.
-     err_code = sd_ble_gap_appearance_set(BLE_APPEARANCE_);
-     APP_ERROR_CHECK(err_code); */
-
-  memset(&gap_conn_params, 0, sizeof(gap_conn_params));
-
-  gap_conn_params.min_conn_interval = MIN_CONN_INTERVAL;
-  gap_conn_params.max_conn_interval = MAX_CONN_INTERVAL;
-  gap_conn_params.slave_latency     = SLAVE_LATENCY;
-  gap_conn_params.conn_sup_timeout  = CONN_SUP_TIMEOUT;
-
-  err_code = sd_ble_gap_ppcp_set(&gap_conn_params);
-  APP_ERROR_CHECK(err_code);
-}
-
-/**@brief Function for handling advertising events.
- *
- * @details This function will be called for advertising events which are passed to the application.
- *
- * @param[in] ble_adv_evt  Advertising event.
- */
 static void on_adv_evt(ble_adv_evt_t ble_adv_evt) {
   ret_code_t err_code;
 
@@ -222,8 +173,8 @@ void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context) {
       NRF_LOG_INFO("Connected.");
       err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
       APP_ERROR_CHECK(err_code);
-      m_conn_handle = p_ble_evt->evt.gap_evt.conn_handle;
-      err_code      = nrf_ble_qwr_conn_handle_assign(&NRFService::qwr, m_conn_handle);
+      currConnection = p_ble_evt->evt.gap_evt.conn_handle;
+      err_code       = nrf_ble_qwr_conn_handle_assign(&NRFService::qwr, currConnection);
       APP_ERROR_CHECK(err_code);
       break;
 
@@ -270,13 +221,13 @@ static void bsp_event_handler(bsp_event_t event) {
 
     case BSP_EVENT_DISCONNECT:
       NRF_LOG_INFO("Disconnect");
-      err_code = sd_ble_gap_disconnect(m_conn_handle, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+      err_code = sd_ble_gap_disconnect(currConnection, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
       if (err_code != NRF_ERROR_INVALID_STATE) { APP_ERROR_CHECK(err_code); }
       break;  // BSP_EVENT_DISCONNECT
 
     case BSP_EVENT_WHITELIST_OFF:
       NRF_LOG_INFO("Whitelist OFF");
-      if (m_conn_handle == BLE_CONN_HANDLE_INVALID) {
+      if (currConnection == BLE_CONN_HANDLE_INVALID) {
         err_code = ble_advertising_restart_without_whitelist(&nrf_ble::nrf_advertise::advertiseMod);
         if (err_code != NRF_ERROR_INVALID_STATE) { APP_ERROR_CHECK(err_code); }
       }
@@ -287,10 +238,6 @@ static void bsp_event_handler(bsp_event_t event) {
   }
 }
 
-/**@brief Function for handling the idle state (main loop).
- *
- * @details If there is no pending log operation, then sleep until next the next event occurs.
- */
 static void idle_state_handle(void) {
   if (NRF_LOG_PROCESS() == false) { nrf_pwr_mgmt_run(); }
 }
@@ -318,7 +265,7 @@ int main(void) {
   NRF_SDH_BLE_OBSERVER(
       m_ble_observer, nrf_ble::nrf_ble_conf::APP_BLE_OBSERVER_PRIO, ble_evt_handler, nullptr);
 
-  gap_params_init();
+  nrf_ble::nrf_gap::init();
   nrf_ble::nrf_gatt::init(nullptr);
 
   nrf_ble::nrf_advertise::init(on_adv_evt);

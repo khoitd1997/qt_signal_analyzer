@@ -145,6 +145,8 @@
         <file file_name="../../../nrf_ble/nrf_ble.hpp" />
         <file file_name="../../../nrf_ble/nrf_gatt.cpp" />
         <file file_name="../../../nrf_ble/nrf_gatt.hpp" />
+        <file file_name="../../../nrf_ble/nrf_gap.cpp" />
+        <file file_name="../../../nrf_ble/nrf_gap.hpp" />
       </folder>
       <file file_name="../../../nrf_power.cpp" />
     </folder>

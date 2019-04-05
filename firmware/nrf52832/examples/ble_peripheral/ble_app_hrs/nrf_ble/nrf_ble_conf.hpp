@@ -43,7 +43,13 @@ static const uint8_t SEC_PARAM_MIN_KEY_SIZE    = 7;
 static const uint8_t SEC_PARAM_MAX_KEY_SIZE    = 16;
 
 // gap
+static const char* DEVICE_NAME       = "Signal_Analyzer";
+static const char* MANUFACTURER_NAME = "KhoiTrinh";
 
+static const uint16_t MIN_CONN_INTERVAL = MSEC_TO_UNITS(100, UNIT_1_25_MS);
+static const uint16_t MAX_CONN_INTERVAL = MSEC_TO_UNITS(200, UNIT_1_25_MS);
+static const uint16_t SLAVE_LATENCY     = 0;
+static const uint16_t CONN_SUP_TIMEOUT  = MSEC_TO_UNITS(4000, UNIT_10_MS);
 }  // namespace nrf_ble_conf
 }  // namespace nrf_ble
 
