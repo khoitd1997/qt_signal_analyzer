@@ -58,8 +58,8 @@
   <Watches active="0" update="Never"/>
  </Watch4>
  <Files>
-  <SessionOpenFile windowGroup="DockEditLeft" x="68" y="86" useTextEdit="1" useBinaryEdit="0" left="12" path="../../../nrf_ble/nrf_ble.cpp" selected="1" top="54" codecName="Default"/>
-  <SessionOpenFile windowGroup="DockEditLeft" x="25" y="350" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.cpp" selected="0" top="318" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="23" y="33" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../nrf_ble/nrf_ble.cpp" selected="1" top="33" codecName="Default"/>
+  <SessionOpenFile windowGroup="DockEditLeft" x="0" y="284" useTextEdit="1" useBinaryEdit="0" left="0" path="../../../main.cpp" selected="0" top="284" codecName="Default"/>
  </Files>
- <ARMCrossStudioWindow activeProject="ble_app_hrs_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="/home/kd/qt_signal_analyzer/firmware/nrf52832/examples/ble_peripheral/ble_app_hrs/nrf_ble" debugSearchPath="" autoConnectCapabilities="3711"/>
+ <ARMCrossStudioWindow activeProject="ble_app_hrs_pca10040_s132" fileDialogDefaultFilter="*.c;*.cpp;*.cxx;*.cc;*.h;*.hpp;*.hxx" autoConnectTarget="J-Link" buildConfiguration="Debug" debugSearchFileMap="" fileDialogInitialDirectory="/home/kd/qt_signal_analyzer/firmware/nrf52832/examples/ble_peripheral/ble_app_hrs/nrf_ble" debugSearchPath="" autoConnectCapabilities="3199"/>
 </session>

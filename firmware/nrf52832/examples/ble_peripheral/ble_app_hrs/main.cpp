@@ -51,9 +51,9 @@
  * with 'YOUR_JOB' indicates where and how you can customize.
  */
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
+#include <cstdbool>
+#include <cstdint>
+#include <cstring>
 
 #include "app_error.h"
 #include "app_timer.h"
