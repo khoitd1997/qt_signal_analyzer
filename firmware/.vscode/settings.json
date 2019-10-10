@@ -9,7 +9,9 @@
     "*.hpp": "cpp",
     "*.ks": "shellscript",
     "*.rasi": "css",
-    "sdk_common.h": "c",
-    "ble_srv_common.h": "c"
+    "*.in": "cmake",
+    "conanfile.txt": "toml",
+    "main.h": "c",
+    "usb_device.h": "c"
   }
 }
