@@ -13,5 +13,6 @@
     "conanfile.txt": "toml",
     "main.h": "c",
     "usb_device.h": "c"
-  }
+  },
+  "editor.formatOnSave": true
 }
