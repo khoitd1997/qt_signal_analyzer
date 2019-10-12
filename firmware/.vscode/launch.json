@@ -8,8 +8,6 @@
       "internalConsoleOptions": "openOnSessionStart",
       "cwd": "${workspaceRoot}",
       "executable": "./build/signal_analyzer_firmware.elf",
-      // "executable": "./cube_generated/build/cube_generated.elf",
-      // "executable": "./cube_generated/cmake_build/signal_analyzer_firmware.elf",
       "name": "Debug STM32407VG",
       "request": "launch",
       "type": "cortex-debug",

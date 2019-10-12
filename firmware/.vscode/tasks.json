@@ -6,9 +6,7 @@
     {
       "label": "build+run",
       "type": "shell",
-      "command": "cd ${workspaceRoot} && make -f cube_wrapper.mk && mkdir -p build && cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake && cmake --build . && JLinkGDBServer -device STM32F407VG -if SWD -speed 16000&; cd ${workspaceRoot} && gdb -x flash.gdbinit -batch",
-      // "command": "make -C ${workspaceRoot}/cube_generated && JLinkGDBServer -device STM32F407VG -if SWD -speed 16000&; cd ${workspaceRoot} && gdb -x flash.gdbinit -batch",
-      // "command": "cd ${workspaceRoot}/cube_generated/cmake_build && cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake && cmake --build . && JLinkGDBServer -device STM32F407VG -if SWD -speed 16000&; cd ${workspaceRoot} && gdb -x flash.gdbinit -batch",
+      "command": "${workspaceRoot}/build_and_flash.sh",
       "presentation": {
         "focus": false,
         "panel": "dedicated",
