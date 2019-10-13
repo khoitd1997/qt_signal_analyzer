@@ -13,16 +13,22 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include "usb_device.h"
+#include "usbd_cdc_if.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "main.c"
+// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+//   // while (1) {}
+// }
+
 #ifdef __cplusplus
 }
 #endif
 
-#include "usb_device.h"
-#include "usbd_cdc_if.h"
+__IO uint16_t uhADCxConvertedValue[16] = {0};
 
 int main(void) {
   /* USER CODE BEGIN 1 */
@@ -49,6 +55,8 @@ int main(void) {
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_SPI1_Init();
+  MX_DMA_Init();
+  MX_ADC1_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
@@ -56,10 +64,16 @@ int main(void) {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&uhADCxConvertedValue, 1) != HAL_OK) {
+  //   /* Start Conversation Error */
+  //   Error_Handler();
+  // }
+
   char buf[] = "Hello";
   while (1) {
-    CDC_Transmit_FS(reinterpret_cast<uint8_t*>(buf), sizeof(buf));
-    HAL_Delay(1000);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(uhADCxConvertedValue), 3);
+    // CDC_Transmit_FS(reinterpret_cast<uint8_t *>(buf), sizeof(buf));
+    HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
