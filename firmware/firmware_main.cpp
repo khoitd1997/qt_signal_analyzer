@@ -16,21 +16,36 @@
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 
+#include <cstdio>
+#include <cstring>
+
+#include <array>
+#include <numeric>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include "main.c"
-
-__IO uint16_t uhADCxConvertedValue[16] = {0};
-void          HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-  uhADCxConvertedValue[0] = 0;
-  uhADCxConvertedValue[1] = 0;
-  uhADCxConvertedValue[2] = 0;
-}
-
 #ifdef __cplusplus
 }
 #endif
+
+constexpr auto kChannel1Oversampling = 4;
+using AdcDataType                    = uint16_t;
+static std::array<volatile AdcDataType, kChannel1Oversampling> adcChannel1Data{0};
+
+static constexpr auto kUsbBufLen         = 100;
+char                  usbBuf[kUsbBufLen] = {0};
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+  if (hadc == &hadc1) {
+    const AdcDataType mean =
+        std::accumulate(adcChannel1Data.begin(), adcChannel1Data.end(), 0) / kChannel1Oversampling;
+    snprintf(usbBuf, kUsbBufLen, "Data: %d\n", mean);
+    CDC_Transmit_HS(reinterpret_cast<uint8_t*>(usbBuf), strlen(usbBuf) + 1);
+    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
+  }
+}
 
 int main(void) {
   /* USER CODE BEGIN 1 */
@@ -55,7 +70,6 @@ int main(void) {
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_USB_DEVICE_Init();
@@ -65,16 +79,13 @@ int main(void) {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&uhADCxConvertedValue, 1) != HAL_OK) {
+  // if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcChannel1Data, 1) != HAL_OK) {
   //   /* Start Conversation Error */
   //   Error_Handler();
   // }
 
-  char buf[] = "Dude";
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
   while (1) {
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(uhADCxConvertedValue), 3);
-    HAL_Delay(100);
-    CDC_Transmit_HS(reinterpret_cast<uint8_t*>(buf), sizeof(buf));
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

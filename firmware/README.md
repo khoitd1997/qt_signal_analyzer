@@ -14,8 +14,18 @@ The following settings should be enabled on cubemx before generating the code:
 
 After code generation, run ```build_and_flash.sh``` to build firmware and flash it
 
+## Viewing CDC USB
+
+Do ```pkill -STOP ModemManager``` at boot, then just ```cat /dev/ttyACM1``` or similar port
+
 ## USB PHY HS
 
 The USB3300 HS PHY is used
 
 NOTE: the 3V and 5V pins of the USB3300 need to be connected to the dev board 3V and 5V supply, also connect USB3300 RST to GND
+
+## ADC Allocation
+
+The stm32 has 3 ADC and a total of 8 available ADC pins(the others were mostly taken by USB HS), to offer 4 sampling channels
+
+## Timing Calculations
