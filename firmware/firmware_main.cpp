@@ -20,15 +20,17 @@
 extern "C" {
 #endif
 #include "main.c"
-// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-//   // while (1) {}
-// }
+
+__IO uint16_t uhADCxConvertedValue[16] = {0};
+void          HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+  uhADCxConvertedValue[0] = 0;
+  uhADCxConvertedValue[1] = 0;
+  uhADCxConvertedValue[2] = 0;
+}
 
 #ifdef __cplusplus
 }
 #endif
-
-__IO uint16_t uhADCxConvertedValue[16] = {0};
 
 int main(void) {
   /* USER CODE BEGIN 1 */
@@ -54,7 +56,6 @@ int main(void) {
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
-  MX_SPI1_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_USB_DEVICE_Init();
@@ -69,11 +70,11 @@ int main(void) {
   //   Error_Handler();
   // }
 
-  char buf[] = "Hello";
+  char buf[] = "Dude";
   while (1) {
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(uhADCxConvertedValue), 3);
-    // CDC_Transmit_FS(reinterpret_cast<uint8_t *>(buf), sizeof(buf));
     HAL_Delay(100);
+    CDC_Transmit_HS(reinterpret_cast<uint8_t*>(buf), sizeof(buf));
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
