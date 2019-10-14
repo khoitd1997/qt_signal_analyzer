@@ -8,17 +8,33 @@
 #include <cassert>
 #include <cstring>
 
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
-int main() {
-  const std::string devFileName1{"/dev/ttyACM1"};
-  const std::string devFileName2{"/dev/ttyACM2"};
+// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
+std::string exec(const char* cmd) {
+  std::array<char, 128>                    buffer;
+  std::string                              result;
+  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+  if (!pipe) { throw std::runtime_error("popen() failed!"); }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) { result += buffer.data(); }
+  return result;
+}
 
-  int fd = open(devFileName1.c_str(), O_RDWR | O_NOCTTY);
-  if (fd < 0) { fd = open(devFileName2.c_str(), O_RDWR | O_NOCTTY); }
+int main() {
+  auto deviceFilePath =
+      "/dev/" + exec(
+                    "ls -l /dev/serial/by-id | grep usb-khoitd1997_Signal_Analyzer | grep -o "
+                    "'\\w*tty\\w*'");
+  deviceFilePath.erase(remove_if(deviceFilePath.begin(), deviceFilePath.end(), isspace),
+                       deviceFilePath.end());
+  int fd = open(deviceFilePath.c_str(), O_RDWR | O_NOCTTY);
+  if (fd < 0) { throw std::runtime_error{"can't open device files"}; }
+
   struct termios options;
   tcgetattr(fd, &options);
   options.c_iflag &= ~(INLCR | IGNCR | ICRNL | IXON | IXOFF);
