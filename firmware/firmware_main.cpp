@@ -23,48 +23,87 @@ extern "C" {
 }
 #endif
 
+#include <cassert>
 #include <cstdio>
 #include <cstring>
 
 #include <array>
 #include <numeric>
+#include <vector>
 
 #include "channel_data.hpp"
 
-static ChannelData channel1Data{0, 0};
+using AdcDataType = uint16_t;
+class AdcWrapper {
+ public:
+  ADC_HandleTypeDef&       adcHandle;
+  std::vector<AdcDataType> data;
 
-constexpr auto kChannel1Oversampling = 4;
-using AdcDataType                    = uint16_t;
-static std::array<volatile AdcDataType, kChannel1Oversampling> adcChannel1Data{0};
+  AdcWrapper(ADC_HandleTypeDef& hadc, const int maxTotalConversion, const int currTotalConversion)
+      : adcHandle{hadc}, data(currTotalConversion) {
+    data.reserve(maxTotalConversion);
+  }
 
-static constexpr auto kUsbBufLen         = 400;
-char                  usbBuf[kUsbBufLen] = {0};
+  void startSampling() {
+    HAL_ADC_Start_DMA(&adcHandle, reinterpret_cast<uint32_t*>(data.data()), data.size());
+  }
+};
+
+class AdcChannel {
+ private:
+  int                             _currSample = 0;
+  ChannelDataPkt                  _data;
+  const std::vector<AdcDataType>& _buf;
+  int                             _startIndex;
+  int                             _endIndex;
+
+ public:
+  const ADC_HandleTypeDef& adcHandle;
+
+  // endIndex inclusive
+  AdcChannel(const uint8_t     channelID,
+             const AdcWrapper& adcWrapper,
+             const int         startIndex,
+             const int         endIndex)
+      : _data{channelID, 0}, _buf{adcWrapper.data}, adcHandle{adcWrapper.adcHandle} {
+    changeIndexRange(startIndex, endIndex);
+  }
+
+  void addSample() {
+    AdcDataType sum = 0;
+    for (auto i = _startIndex; i <= _endIndex; ++i) { sum += _buf[i]; }
+    _data.samples[_currSample].adcData = sum / (_endIndex - _startIndex + 1);
+    _data.samples[_currSample].tickCnt = HAL_GetTick();  // TODO(kd): Replace this
+
+    _currSample = (_currSample + 1) % kSamplePerPkt;
+    if (0 == _currSample) {
+      CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&_data), sizeof(ChannelDataPkt));
+    }
+  }
+
+  void changeIndexRange(const int startIndex, const int endIndex) {
+    assert(endIndex >= startIndex && endIndex < static_cast<int>(_buf.capacity()));
+    _startIndex = startIndex;
+    _endIndex   = endIndex;
+  }
+};
+
+constexpr auto kAdc1TotalConversion = 4;
+constexpr auto kAdc2TotalConversion = 4;
+
+static std::array<AdcWrapper, 1> adcs{
+    // AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion}
+    AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}};
+
+static std::array<AdcChannel, 1> adcChannels{AdcChannel{0, adcs[0], 0, kAdc1TotalConversion - 1}};
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-  static int totalTime = 0;
-  const auto currTick  = HAL_GetTick();
-  if (hadc == &hadc1) {
-    static int currSample = 0;
-    channel1Data.samples[currSample].adcData =
-        std::accumulate(adcChannel1Data.begin(), adcChannel1Data.end(), 0) / kChannel1Oversampling;
-    channel1Data.samples[currSample].tickCnt = currTick;
-    if (kSampleCnt == currSample + 1) {
-      // memcpy(reinterpret_cast<void*>(usbBuf),
-      //        reinterpret_cast<void*>(&channel1Data),
-      //        sizeof(ChannelData));
-      CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&channel1Data), sizeof(ChannelData));
+  for (auto& adcChannel : adcChannels) {
+    if (hadc == &(adcChannel.adcHandle)) { adcChannel.addSample(); }
+  }
 
-      // const auto len = snprintf(usbBuf, kUsbBufLen, "Data: 1000\n");
-      // if (totalTime < 5000) {
-      // CDC_Transmit_HS(reinterpret_cast<uint8_t*>(usbBuf), len);
-      //   ++totalTime;
-      // }
-    }
-    currSample = (currSample + 1) % kSampleCnt;
-
-    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
-  } else if (hadc == &hadc2) {
-    // HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(adcChannel1Data.data()), 1);
+  for (auto& adc : adcs) {
+    if (hadc == &(adc.adcHandle)) { adc.startSampling(); }
   }
 }
 
@@ -101,14 +140,9 @@ int main(void) {
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // if (HAL_ADC_Start_DMA(&hadc1, (uint32_t *)&adcChannel1Data, 1) != HAL_OK) {
-  //   /* Start Conversation Error */
-  //   Error_Handler();
-  // }
 
-  // HAL_Delay(5000);
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
-  // HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(adcChannel1Data.data()), 1);
+  HAL_Delay(2000);
+  for (auto& adc : adcs) { adc.startSampling(); }
   while (1) {
     /* USER CODE END WHILE */
 

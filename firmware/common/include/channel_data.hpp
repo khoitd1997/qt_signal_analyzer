@@ -9,9 +9,9 @@ struct DataSample {
   uint16_t adcData;
 };
 
-static constexpr auto kSampleCnt = 15;
-struct ChannelData {
+static constexpr auto kSamplePerPkt = 15;
+struct ChannelDataPkt {
   uint8_t channelID;  // 0-3
 
-  DataSample samples[kSampleCnt];
+  DataSample samples[kSamplePerPkt];
 };

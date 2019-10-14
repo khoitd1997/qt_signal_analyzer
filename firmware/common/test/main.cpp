@@ -14,7 +14,7 @@
 #include <string>
 
 int main() {
-  const std::string devFileName{"/dev/ttyACM2"};
+  const std::string devFileName{"/dev/ttyACM1"};
 
   int fd = open(devFileName.c_str(), O_RDWR | O_NOCTTY);
   if (fd < 0) { throw std::runtime_error{"can't open files"}; }
@@ -25,16 +25,14 @@ int main() {
   options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
   tcsetattr(fd, TCSANOW, &options);
 
-  ChannelData channel1Data;
-  std::cout << "Data size: " << sizeof(ChannelData) << std::endl;
+  ChannelDataPkt channel1Data;
   for (;;) {
     int  byteCnt = 0;
-    auto readCnt = read(fd, reinterpret_cast<void*>(&channel1Data), sizeof(ChannelData));
+    auto readCnt = read(fd, reinterpret_cast<void*>(&channel1Data), sizeof(ChannelDataPkt));
     if (readCnt == -1) { throw std::runtime_error{"read error"}; }
 
     std::cout << "First member: " << channel1Data.samples[0].adcData << std::endl;
   }
-  // sleep(1);
 
   close(fd);
 
