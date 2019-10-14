@@ -15,13 +15,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
-
-#include <cstdio>
-#include <cstring>
-
-#include <array>
-#include <numeric>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -30,20 +23,47 @@ extern "C" {
 }
 #endif
 
+#include <cstdio>
+#include <cstring>
+
+#include <array>
+#include <numeric>
+
+#include "channel_data.hpp"
+
+static ChannelData channel1Data{0, 0};
+
 constexpr auto kChannel1Oversampling = 4;
 using AdcDataType                    = uint16_t;
 static std::array<volatile AdcDataType, kChannel1Oversampling> adcChannel1Data{0};
 
-static constexpr auto kUsbBufLen         = 100;
+static constexpr auto kUsbBufLen         = 400;
 char                  usbBuf[kUsbBufLen] = {0};
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+  static int totalTime = 0;
+  const auto currTick  = HAL_GetTick();
   if (hadc == &hadc1) {
-    const AdcDataType mean =
+    channel1Data.samples[channel1Data.sampleCnt].adcData =
         std::accumulate(adcChannel1Data.begin(), adcChannel1Data.end(), 0) / kChannel1Oversampling;
-    snprintf(usbBuf, kUsbBufLen, "Data: %d\n", mean);
-    CDC_Transmit_HS(reinterpret_cast<uint8_t*>(usbBuf), strlen(usbBuf) + 1);
+    channel1Data.samples[channel1Data.sampleCnt].tickCnt = currTick;
+    if (kSampleCnt == channel1Data.sampleCnt + 1) {
+      // memcpy(reinterpret_cast<void*>(usbBuf),
+      //        reinterpret_cast<void*>(&channel1Data),
+      //        sizeof(ChannelData));
+      CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&channel1Data), sizeof(ChannelData));
+
+      // const auto len = snprintf(usbBuf, kUsbBufLen, "Data: 1000\n");
+      // if (totalTime < 5000) {
+      // CDC_Transmit_HS(reinterpret_cast<uint8_t*>(usbBuf), len);
+      //   ++totalTime;
+      // }
+    }
+    channel1Data.sampleCnt = (channel1Data.sampleCnt + 1) % kSampleCnt;
+
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
+  } else if (hadc == &hadc2) {
+    // HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(adcChannel1Data.data()), 1);
   }
 }
 
@@ -72,6 +92,7 @@ int main(void) {
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
+  MX_ADC2_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
@@ -84,7 +105,9 @@ int main(void) {
   //   Error_Handler();
   // }
 
+  // HAL_Delay(5000);
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
+  // HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(adcChannel1Data.data()), 1);
   while (1) {
     /* USER CODE END WHILE */
 
