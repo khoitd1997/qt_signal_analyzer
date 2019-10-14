@@ -13,8 +13,6 @@
 #include <stdexcept>
 #include <string>
 
-#include "libusb.h"
-
 int main() {
   const std::string devFileName{"/dev/ttyACM2"};
 
@@ -29,26 +27,14 @@ int main() {
 
   ChannelData channel1Data;
   std::cout << "Data size: " << sizeof(ChannelData) << std::endl;
-  // sleep(2);
   for (;;) {
-    // sleep(1);
-    int byteCnt = 0;
-    if (ioctl(fd, FIONREAD, &byteCnt) == -1) { throw std::runtime_error{"ioctl error"}; }
-    // if (byteCnt >= sizeof(ChannelData)) {
-    const auto dataSize = sizeof(ChannelData);
-    if (byteCnt >= dataSize) {
-      auto readCnt = read(fd, reinterpret_cast<void*>(&channel1Data), dataSize);
-      if (readCnt == -1) { throw std::runtime_error{"read error"}; }
+    int  byteCnt = 0;
+    auto readCnt = read(fd, reinterpret_cast<void*>(&channel1Data), sizeof(ChannelData));
+    if (readCnt == -1) { throw std::runtime_error{"read error"}; }
 
-      if (readCnt == dataSize) {
-        std::cout << "First member: " << channel1Data.samples[0].adcData << std::endl;
-      }
-      // std::cout << "Read Cnt: " << readCnt << ", byte Cnt:" << byteCnt << std::endl;
-      // for (auto i = 0; i < dataSize; ++i) { printf("%c", buf[i]); }
-      // printf("\n");
-    }
-    // sleep(1);
+    std::cout << "First member: " << channel1Data.samples[0].adcData << std::endl;
   }
+  // sleep(1);
 
   close(fd);
 
