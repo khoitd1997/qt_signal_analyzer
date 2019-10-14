@@ -91,8 +91,8 @@ class AdcChannel {
 constexpr auto kAdc1TotalConversion = 4;
 constexpr auto kAdc2TotalConversion = 4;
 
-static std::array<AdcWrapper, 1> adcs{
-    // AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion}
+static std::array<AdcWrapper, 2> adcs{
+    AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion},
     AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}};
 
 static std::array<AdcChannel, 1> adcChannels{AdcChannel{0, adcs[0], 0, kAdc1TotalConversion - 1}};
