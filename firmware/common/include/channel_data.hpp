@@ -13,6 +13,5 @@ static constexpr auto kSampleCnt = 15;
 struct ChannelData {
   uint8_t channelID;  // 0-3
 
-  uint8_t    sampleCnt;
   DataSample samples[kSampleCnt];
 };

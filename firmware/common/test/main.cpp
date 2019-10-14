@@ -16,7 +16,7 @@
 #include "libusb.h"
 
 int main() {
-  const std::string devFileName{"/dev/ttyACM1"};
+  const std::string devFileName{"/dev/ttyACM2"};
 
   int fd = open(devFileName.c_str(), O_RDWR | O_NOCTTY);
   if (fd < 0) { throw std::runtime_error{"can't open files"}; }
@@ -29,7 +29,7 @@ int main() {
 
   ChannelData channel1Data;
   std::cout << "Data size: " << sizeof(ChannelData) << std::endl;
-  sleep(2);
+  // sleep(2);
   for (;;) {
     // sleep(1);
     int byteCnt = 0;
@@ -41,14 +41,13 @@ int main() {
       if (readCnt == -1) { throw std::runtime_error{"read error"}; }
 
       if (readCnt == dataSize) {
-        std::cout << "Data is: " << (int)channel1Data.sampleCnt
-                  << ", first member: " << channel1Data.samples[0].adcData << std::endl;
+        std::cout << "First member: " << channel1Data.samples[0].adcData << std::endl;
       }
-      std::cout << "Read Cnt: " << readCnt << ", byte Cnt:" << byteCnt << std::endl;
+      // std::cout << "Read Cnt: " << readCnt << ", byte Cnt:" << byteCnt << std::endl;
       // for (auto i = 0; i < dataSize; ++i) { printf("%c", buf[i]); }
       // printf("\n");
     }
-    sleep(1);
+    // sleep(1);
   }
 
   close(fd);

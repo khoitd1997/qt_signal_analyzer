@@ -44,10 +44,11 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
   static int totalTime = 0;
   const auto currTick  = HAL_GetTick();
   if (hadc == &hadc1) {
-    channel1Data.samples[channel1Data.sampleCnt].adcData =
+    static int currSample = 0;
+    channel1Data.samples[currSample].adcData =
         std::accumulate(adcChannel1Data.begin(), adcChannel1Data.end(), 0) / kChannel1Oversampling;
-    channel1Data.samples[channel1Data.sampleCnt].tickCnt = currTick;
-    if (kSampleCnt == channel1Data.sampleCnt + 1) {
+    channel1Data.samples[currSample].tickCnt = currTick;
+    if (kSampleCnt == currSample + 1) {
       // memcpy(reinterpret_cast<void*>(usbBuf),
       //        reinterpret_cast<void*>(&channel1Data),
       //        sizeof(ChannelData));
@@ -59,7 +60,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
       //   ++totalTime;
       // }
     }
-    channel1Data.sampleCnt = (channel1Data.sampleCnt + 1) % kSampleCnt;
+    currSample = (currSample + 1) % kSampleCnt;
 
     HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(adcChannel1Data.data()), kChannel1Oversampling);
   } else if (hadc == &hadc2) {
