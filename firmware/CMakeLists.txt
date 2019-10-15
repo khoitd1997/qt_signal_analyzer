@@ -22,7 +22,9 @@ link_libraries(${CMAKE_CURRENT_SOURCE_DIR}/cmsis/dsp/libarm_cortexM4lf_math.a)
 include_directories(SYSTEM cmsis/core/include)
 include_directories(SYSTEM cmsis/dsp/include)
 
+add_subdirectory(debug_utils)
+
 add_subdirectory(common)
 
 add_executable(${PROJECT_NAME}.elf ${STM32_HAL_SRCS} firmware_main.cpp)
-target_link_libraries(${PROJECT_NAME}.elf PUBLIC signal_analyzer_common)
+target_link_libraries(${PROJECT_NAME}.elf PUBLIC signal_analyzer_common swo)
