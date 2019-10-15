@@ -33,6 +33,59 @@ extern "C" {
 
 #include "channel_data.hpp"
 
+#include "swo_segger.h"
+
+class CriticalSectionLockGuard {
+ public:
+  CriticalSectionLockGuard() { __disable_irq(); }
+  ~CriticalSectionLockGuard() { __enable_irq(); }
+};
+
+template <typename T, int BufferSize>
+class CircularBuffer {
+ private:
+  T*   _buf        = new T[BufferSize];
+  int  _readIndex  = 0;
+  int  _writeIndex = 0;
+  bool _isFull     = false;
+
+  int getNextIndex(const int index) volatile { return ((index + 1) % BufferSize); }
+
+ public:
+  bool isFull() volatile { return _isFull; }
+  bool isEmpty() volatile { return !_isFull && _writeIndex == _readIndex; }
+  T    read() volatile {
+    if (isEmpty()) {
+      while (1) {}
+    }
+    auto ret   = _buf[_readIndex];
+    _readIndex = getNextIndex(_readIndex);
+    if (_readIndex == _writeIndex) { _isFull = false; }
+    return ret;
+  }
+
+  void write(const T& data) volatile {
+    if (isFull()) {
+      _readIndex = getNextIndex(_readIndex);
+      while (1) {}
+    }
+    _buf[_writeIndex] = data;
+    _writeIndex       = getNextIndex(_writeIndex);
+    if (_writeIndex == _readIndex) { _isFull = true; }
+  }
+
+  int size() volatile {
+    return _isFull ? BufferSize
+                   : (_writeIndex < _readIndex) ? (_writeIndex + BufferSize) - _readIndex
+                                                : _writeIndex - _readIndex;
+  }
+
+  int capacity() volatile { return BufferSize; }
+};
+typedef CircularBuffer<ChannelDataPkt, 50> UsbBuffer;
+static UsbBuffer                           usbBuf;
+static volatile UsbBuffer*                 volatileBuf = &usbBuf;
+
 using AdcDataType = uint16_t;
 class AdcWrapper {
  public:
@@ -76,9 +129,7 @@ class AdcChannel {
     _data.samples[_currSample].tickCnt = HAL_GetTick();  // TODO(kd): Replace this
 
     _currSample = (_currSample + 1) % kSamplePerPkt;
-    if (0 == _currSample) {
-      CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&_data), sizeof(ChannelDataPkt));
-    }
+    if (0 == _currSample) { volatileBuf->write(_data); }
   }
 
   void changeIndexRange(const int startIndex, const int endIndex) {
@@ -108,45 +159,31 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 }
 
 int main(void) {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
 
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
+  HAL_Delay(1000);  // delay so that usb can initialize properly
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-
-  HAL_Delay(2000);
-  for (auto& adc : adcs) { adc.startSampling(); }
   while (1) {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
+    auto           isEmpty = true;
+    ChannelDataPkt pkt;
+    {
+      CriticalSectionLockGuard l();
+      isEmpty = volatileBuf->isEmpty();
+      if (!isEmpty) { pkt = volatileBuf->read(); }
+    }
+    if (!isEmpty) {
+      while (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&pkt), sizeof(pkt))) {
+        // wait until usb is not busy and pkt is sent
+      }
+    }
   }
-  /* USER CODE END 3 */
 }
