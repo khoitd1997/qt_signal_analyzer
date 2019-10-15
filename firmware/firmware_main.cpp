@@ -41,6 +41,8 @@ class CriticalSectionLockGuard {
   ~CriticalSectionLockGuard() { __enable_irq(); }
 };
 
+volatile bool usbDisconneted = false;
+
 template <typename T, int BufferSize>
 class CircularBuffer {
  private:
@@ -49,15 +51,19 @@ class CircularBuffer {
   int  _writeIndex = 0;
   bool _isFull     = false;
 
+  int dropCnt = 0;
+
   int getNextIndex(const int index) volatile { return ((index + 1) % BufferSize); }
 
  public:
   bool isFull() volatile { return _isFull; }
   bool isEmpty() volatile { return !_isFull && _writeIndex == _readIndex; }
-  T    read() volatile {
+  T    read(bool& empty) volatile {
     if (isEmpty()) {
-      while (1) {}
+      empty = true;
+      return T();
     }
+    empty      = false;
     auto ret   = _buf[_readIndex];
     _readIndex = getNextIndex(_readIndex);
     if (_readIndex == _writeIndex) { _isFull = false; }
@@ -65,9 +71,14 @@ class CircularBuffer {
   }
 
   void write(const T& data) volatile {
+    // is usb is disconnected, overwrite
     if (isFull()) {
-      _readIndex = getNextIndex(_readIndex);
-      while (1) {}
+      if (usbDisconneted) {
+        _readIndex = getNextIndex(_readIndex);
+      } else {
+        SWO_PrintStringLine("Dropped");
+        // while (1) {}
+      }
     }
     _buf[_writeIndex] = data;
     _writeIndex       = getNextIndex(_writeIndex);
@@ -82,42 +93,45 @@ class CircularBuffer {
 
   int capacity() volatile { return BufferSize; }
 };
-typedef CircularBuffer<ChannelDataPkt, 50> UsbBuffer;
+typedef CircularBuffer<ChannelDataPkt, 15> UsbBuffer;
 static UsbBuffer                           usbBuf;
 static volatile UsbBuffer*                 volatileBuf = &usbBuf;
 
 using AdcDataType = uint16_t;
 class AdcWrapper {
  public:
-  ADC_HandleTypeDef&       adcHandle;
-  std::vector<AdcDataType> data;
+  ADC_HandleTypeDef& adcHandle;
+  AdcDataType*       data;
+  int                _currTotalConversion;
 
   AdcWrapper(ADC_HandleTypeDef& hadc, const int maxTotalConversion, const int currTotalConversion)
-      : adcHandle{hadc}, data(currTotalConversion) {
-    data.reserve(maxTotalConversion);
+      : adcHandle{hadc},
+        data{new AdcDataType[maxTotalConversion]},
+        _currTotalConversion{currTotalConversion} {}
+
+  void startSampling() volatile {
+    HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)(data), _currTotalConversion);
   }
 
-  void startSampling() {
-    HAL_ADC_Start_DMA(&adcHandle, reinterpret_cast<uint32_t*>(data.data()), data.size());
-  }
+  ~AdcWrapper() { delete[] data; }
 };
 
 class AdcChannel {
  private:
-  int                             _currSample = 0;
-  ChannelDataPkt                  _data;
-  const std::vector<AdcDataType>& _buf;
-  int                             _startIndex;
-  int                             _endIndex;
+  int                _currSample = 0;
+  ChannelDataPkt     _data;
+  const AdcDataType* _buf;
+  int                _startIndex;
+  int                _endIndex;
 
  public:
   const ADC_HandleTypeDef& adcHandle;
 
   // endIndex inclusive
-  AdcChannel(const uint8_t     channelID,
-             const AdcWrapper& adcWrapper,
-             const int         startIndex,
-             const int         endIndex)
+  AdcChannel(const uint8_t              channelID,
+             const volatile AdcWrapper& adcWrapper,
+             const int                  startIndex,
+             const int                  endIndex)
       : _data{channelID, 0}, _buf{adcWrapper.data}, adcHandle{adcWrapper.adcHandle} {
     changeIndexRange(startIndex, endIndex);
   }
@@ -133,7 +147,7 @@ class AdcChannel {
   }
 
   void changeIndexRange(const int startIndex, const int endIndex) {
-    assert(endIndex >= startIndex && endIndex < static_cast<int>(_buf.capacity()));
+    assert(endIndex >= startIndex);
     _startIndex = startIndex;
     _endIndex   = endIndex;
   }
@@ -142,13 +156,13 @@ class AdcChannel {
 constexpr auto kAdc1TotalConversion = 4;
 constexpr auto kAdc2TotalConversion = 4;
 
-static std::array<AdcWrapper, 2> adcs{
-    AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion},
+static std::array<volatile AdcWrapper, 1> adcs{
+    // AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion},
     AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}};
 
-static std::array<AdcChannel, 1> adcChannels{AdcChannel{0, adcs[0], 0, kAdc1TotalConversion - 1}};
-
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+  static std::array<AdcChannel, 1> adcChannels{AdcChannel{0, adcs[0], 0, kAdc1TotalConversion - 1}};
+
   for (auto& adcChannel : adcChannels) {
     if (hadc == &(adcChannel.adcHandle)) { adcChannel.addSample(); }
   }
@@ -171,18 +185,23 @@ int main(void) {
   MX_USB_DEVICE_Init();
 
   HAL_Delay(1000);  // delay so that usb can initialize properly
+  for (auto& adc : adcs) { adc.startSampling(); }
+  auto disconnectCnt = 0;
 
   while (1) {
-    auto           isEmpty = true;
+    auto           isEmpty = false;
     ChannelDataPkt pkt;
     {
       CriticalSectionLockGuard l();
-      isEmpty = volatileBuf->isEmpty();
-      if (!isEmpty) { pkt = volatileBuf->read(); }
+
+      usbDisconneted = (disconnectCnt >= 5);
+      pkt            = volatileBuf->read(isEmpty);
     }
     if (!isEmpty) {
-      while (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&pkt), sizeof(pkt))) {
-        // wait until usb is not busy and pkt is sent
+      if (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&pkt), sizeof(pkt))) {
+        if (!usbDisconneted) { ++disconnectCnt; }
+      } else {
+        disconnectCnt = 0;
       }
     }
   }
