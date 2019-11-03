@@ -41,7 +41,10 @@ class CriticalSectionLockGuard {
   ~CriticalSectionLockGuard() { __enable_irq(); }
 };
 
-volatile bool usbDisconneted = false;
+volatile bool usbDisconnected = true;
+
+auto&    timestampTimer = htim2;
+uint32_t getTimestamp() { return timestampTimer.Instance->CNT; }
 
 template <typename T, int BufferSize>
 class CircularBuffer {
@@ -73,7 +76,7 @@ class CircularBuffer {
   void write(const T& data) volatile {
     // is usb is disconnected, overwrite
     if (isFull()) {
-      if (usbDisconneted) {
+      if (usbDisconnected) {
         _readIndex = getNextIndex(_readIndex);
       } else {
         SWO_PrintStringLine("Dropped");
@@ -140,9 +143,9 @@ class AdcChannel {
     AdcDataType sum = 0;
     for (auto i = _startIndex; i <= _endIndex; ++i) { sum += _buf[i]; }
     _data.samples[_currSample].adcData = sum / (_endIndex - _startIndex + 1);
-    _data.samples[_currSample].tickCnt = HAL_GetTick();  // TODO(kd): Replace this
+    _data.samples[_currSample].tickCnt = getTimestamp();
 
-    _currSample = (_currSample + 1) % kSamplePerPkt;
+    _currSample = (_currSample + 1) % kMaxSamplePerPkt;
     if (0 == _currSample) { volatileBuf->write(_data); }
   }
 
@@ -156,8 +159,8 @@ class AdcChannel {
 constexpr auto kAdc1TotalConversion = 4;
 constexpr auto kAdc2TotalConversion = 4;
 
-static std::array<volatile AdcWrapper, 1> adcs{
-    // AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion},
+static std::array<volatile AdcWrapper, 2> adcs{
+    AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion},
     AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}};
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
@@ -166,11 +169,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
   for (auto& adcChannel : adcChannels) {
     if (hadc == &(adcChannel.adcHandle)) { adcChannel.addSample(); }
   }
-
-  for (auto& adc : adcs) {
-    if (hadc == &(adc.adcHandle)) { adc.startSampling(); }
-  }
 }
+
+auto& samplingTimer = htim3;
 
 int main(void) {
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -180,28 +181,41 @@ int main(void) {
 
   MX_GPIO_Init();
   MX_DMA_Init();
+
   MX_ADC1_Init();
   MX_ADC2_Init();
+
   MX_USB_DEVICE_Init();
 
+  MX_TIM2_Init();
+  MX_TIM3_Init();
+
   HAL_Delay(1000);  // delay so that usb can initialize properly
+
+  auto           disconnectCnt    = 0;
+  auto           isEmpty          = false;
+  auto           prevTransferDone = true;
+  ChannelDataPkt pkt;
+
+  HAL_TIM_Base_Start_IT(&samplingTimer);
+  HAL_TIM_Base_Start_IT(&timestampTimer);
+
   for (auto& adc : adcs) { adc.startSampling(); }
-  auto disconnectCnt = 0;
 
   while (1) {
-    auto           isEmpty = false;
-    ChannelDataPkt pkt;
-    {
+    if (prevTransferDone) {
       CriticalSectionLockGuard l();
 
-      usbDisconneted = (disconnectCnt >= 5);
-      pkt            = volatileBuf->read(isEmpty);
+      usbDisconnected = (disconnectCnt >= 5);
+      pkt             = volatileBuf->read(isEmpty);
     }
     if (!isEmpty) {
       if (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&pkt), sizeof(pkt))) {
-        if (!usbDisconneted) { ++disconnectCnt; }
+        if (!usbDisconnected) { ++disconnectCnt; }
+        prevTransferDone = false;
       } else {
-        disconnectCnt = 0;
+        disconnectCnt    = 0;
+        prevTransferDone = true;
       }
     }
   }

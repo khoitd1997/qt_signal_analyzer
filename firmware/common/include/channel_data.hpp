@@ -9,9 +9,9 @@ struct DataSample {
   uint16_t adcData;
 };
 
-static constexpr auto kSamplePerPkt = 280;
+static constexpr auto kMaxSamplePerPkt = 280;
 struct ChannelDataPkt {
   uint8_t channelID;  // 0-3
 
-  DataSample samples[kSamplePerPkt];
+  DataSample samples[kMaxSamplePerPkt];
 };
