@@ -3,8 +3,9 @@ project(signal_analyzer_firmware C CXX ASM)
 
 set(
   CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -std=c++17 -fno-rtti -Wno-comment -Wall --specs=nosys.specs -fno-exceptions"
+  "${CMAKE_CXX_FLAGS} -std=c++17 -fno-rtti -Wno-comment -Og -Wall --specs=nosys.specs -fno-exceptions"
   )
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -Wall")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(cube_generated)

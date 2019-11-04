@@ -29,3 +29,7 @@ NOTE: the 3V and 5V pins of the USB3300 need to be connected to the dev board 3V
 The stm32 has 3 ADC and a total of 8 available ADC pins(the others were mostly taken by USB HS), to offer 4 sampling channels
 
 ## Timing Calculations
+
+![](image/2019-11-04-12-58-08.png)
+
+![](image/2019-11-04-13-00-17.png)

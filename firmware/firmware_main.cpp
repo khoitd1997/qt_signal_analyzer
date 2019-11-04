@@ -52,6 +52,7 @@ __attribute__((__constructor__)) void initHw() {
 
   MX_TIM2_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
 
   HAL_Delay(1000);  // delay so that usb can initialize properly
 }
@@ -88,26 +89,25 @@ class CircularBuffer {
       return T();
     }
     empty      = false;
-    auto ret   = _buf[_readIndex];
+    auto& ret  = _buf[_readIndex];
     _readIndex = getNextIndex(_readIndex);
     if (_readIndex == _writeIndex) { _isFull = false; }
     return ret;
   }
 
-  void write(const T& data) volatile {
-    // is usb is disconnected, overwrite
+  T& front() volatile { return _buf[0]; }
+
+  // modified from regular circular buffer to work with DMA
+  // return ref to the next element to be written
+  T& write() volatile {
     if (isFull()) {
       SWO_PrintStringLine("Dropped");
-      // while (1) {}
-      if (usbDisconnected) {
-        _readIndex = getNextIndex(_readIndex);
-      } else {
-        // empty
-      }
+      _readIndex = getNextIndex(_readIndex);
     }
-    _buf[_writeIndex] = data;
-    _writeIndex       = getNextIndex(_writeIndex);
+    _writeIndex = getNextIndex(_writeIndex);
     if (_writeIndex == _readIndex) { _isFull = true; }
+
+    return _buf[_writeIndex];
   }
 
   int size() volatile {
@@ -132,66 +132,83 @@ class AdcWrapper {
   AdcWrapper(ADC_HandleTypeDef& hadc, const int maxTotalConversion, const int currTotalConversion)
       : adcHandle{hadc},
         data{new AdcDataType[maxTotalConversion]},
-        _currTotalConversion{currTotalConversion} {
-    HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)(data), _currTotalConversion);
-  }
+        _currTotalConversion{currTotalConversion} {}
 
   ~AdcWrapper() { delete[] data; }
 };
 
-class AdcChannel {
- private:
-  int                _currSample = 0;
-  ChannelDataPkt     _data;
-  const AdcDataType* _buf;
-  int                _startIndex;
-  int                _endIndex;
+// class AdcChannel {
+//  private:
+//   int                _currSample = 0;
+//   ChannelDataPkt     _data;
+//   const AdcDataType* _buf;
+//   int                _startIndex;
+//   int                _endIndex;
 
- public:
-  const ADC_HandleTypeDef& adcHandle;
+//  public:
+//   const ADC_HandleTypeDef& adcHandle;
 
-  // endIndex inclusive
-  AdcChannel(const uint8_t              channelID,
-             const volatile AdcWrapper& adcWrapper,
-             const int                  startIndex,
-             const int                  endIndex)
-      : _data{.channelID = channelID}, _buf{adcWrapper.data}, adcHandle{adcWrapper.adcHandle} {
-    changeIndexRange(startIndex, endIndex);
-  }
+//   // endIndex inclusive
+//   AdcChannel(const uint8_t              channelID,
+//              const volatile AdcWrapper& adcWrapper,
+//              const int                  startIndex,
+//              const int                  endIndex)
+//       : _data{.channelID = channelID}, _buf{adcWrapper.data}, adcHandle{adcWrapper.adcHandle} {
+//     changeIndexRange(startIndex, endIndex);
+//   }
 
-  void addSample() {
-    AdcDataType sum = 0;
-    for (auto i = _startIndex; i <= _endIndex; ++i) { sum += _buf[i]; }
-    _data.samples[_currSample].adcData   = sum / (_endIndex - _startIndex + 1);
-    _data.samples[_currSample].timestamp = getTimestamp();
+//   void addSample() {
+//     AdcDataType sum = 0;
+//     for (auto i = _startIndex; i <= _endIndex; ++i) { sum += _buf[i]; }
+//     _data.samples[_currSample].adcData   = sum / (_endIndex - _startIndex + 1);
+//     _data.samples[_currSample].timestamp = getTimestamp();
 
-    _currSample = (_currSample + 1) % kMaxSamplePerPkt;
-    if (0 == _currSample) { volatileBuf->write(_data); }
-  }
+//     _currSample = (_currSample + 1) % kMaxSamplePerPkt;
+//     if (0 == _currSample) { volatileBuf->write(_data); }
+//   }
 
-  void changeIndexRange(const int startIndex, const int endIndex) {
-    assert(endIndex >= startIndex);
-    _startIndex = startIndex;
-    _endIndex   = endIndex;
-  }
-};
+//   void changeIndexRange(const int startIndex, const int endIndex) {
+//     assert(endIndex >= startIndex);
+//     _startIndex = startIndex;
+//     _endIndex   = endIndex;
+//   }
+// };
 
 static constexpr auto kAdc1TotalConversion = 4;
 static constexpr auto kAdc2TotalConversion = 4;
 
-static std::array<volatile AdcWrapper, 1> adcs{
-    AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion}
-    // ,AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}
-};
+// static std::array<volatile AdcWrapper, 1> adcs{
+//     AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion}
+//     // ,AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}
+// };
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-  static std::array<AdcChannel, 4> adcChannels{AdcChannel{0, adcs[0], 0, 0},
-                                               AdcChannel{1, adcs[0], 1, 1},
-                                               AdcChannel{2, adcs[0], 2, 2},
-                                               AdcChannel{3, adcs[0], 3, 3}};
+// void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
+//   static std::array<AdcChannel, 4> adcChannels{AdcChannel{0, adcs[0], 0, 0},
+//                                                AdcChannel{1, adcs[0], 1, 1},
+//                                                AdcChannel{2, adcs[0], 2, 2},
+//                                                AdcChannel{3, adcs[0], 3, 3}};
 
-  for (auto& adcChannel : adcChannels) {
-    if (hadc == &(adcChannel.adcHandle)) { adcChannel.addSample(); }
+//   for (auto& adcChannel : adcChannels) {
+//     if (hadc == &(adcChannel.adcHandle)) { adcChannel.addSample(); }
+//   }
+// }
+
+auto& bufferSwapTimer = htim4;
+void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
+  if (htim == &bufferSwapTimer) {
+    SWO_PrintStringLine("buffer");
+    auto& writeElem = volatileBuf->write();
+    if (HAL_ADC_Start_DMA(
+            &hadc1, reinterpret_cast<uint32_t*>(writeElem.adcData), kMaxSamplePerPkt) != HAL_OK) {
+      while (1) {}
+    }
+    auto ret1 = HAL_TIM_IC_Start_DMA(&timestampTimer,
+                                     TIM_CHANNEL_1,
+                                     reinterpret_cast<uint32_t*>(writeElem.timestamp),
+                                     kMaxSamplePerPkt);
+    if (ret1 != HAL_OK) {
+      while (1) {}
+    }
   }
 }
 
@@ -203,8 +220,17 @@ int main(void) {
   auto           prevTransferDone = true;
   ChannelDataPkt pkt;
 
-  HAL_TIM_Base_Start_IT(&samplingTimer);
-  HAL_TIM_Base_Start_IT(&timestampTimer);
+  auto& writeElem = volatileBuf->front();
+  HAL_ADC_Start_DMA(&hadc1, reinterpret_cast<uint32_t*>(writeElem.adcData), kMaxSamplePerPkt);
+
+  // HAL_TIM_Base_Start_IT(&samplingTimer);
+  // HAL_TIM_Base_Start_IT(&timestampTimer);
+  HAL_TIM_PWM_Start(&samplingTimer, TIM_CHANNEL_1);
+  HAL_TIM_Base_Start_IT(&bufferSwapTimer);
+  HAL_TIM_IC_Start_DMA(&timestampTimer,
+                       TIM_CHANNEL_1,
+                       reinterpret_cast<uint32_t*>(writeElem.timestamp),
+                       kMaxSamplePerPkt);
 
   while (1) {
     if (prevTransferDone) {
