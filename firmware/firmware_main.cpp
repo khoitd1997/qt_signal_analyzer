@@ -162,11 +162,8 @@ class AdcChannel {
   void addSample() {
     AdcDataType sum = 0;
     for (auto i = _startIndex; i <= _endIndex; ++i) { sum += _buf[i]; }
-    // TODO(kd): Change back after test
-    // _data.samples[_currSample].adcData   = sum / (_endIndex - _startIndex + 1);
-    // _data.samples[_currSample].timestamp = getTimestamp();
-    _data.samples[_currSample].adcData   = 0xefab;
-    _data.samples[_currSample].timestamp = 0x0123abcd;
+    _data.samples[_currSample].adcData   = sum / (_endIndex - _startIndex + 1);
+    _data.samples[_currSample].timestamp = getTimestamp();
 
     _currSample = (_currSample + 1) % kMaxSamplePerPkt;
     if (0 == _currSample) { volatileBuf->write(_data); }

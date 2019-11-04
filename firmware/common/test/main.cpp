@@ -39,17 +39,19 @@ int main() {
   tcgetattr(fd, &options);
   options.c_iflag &= ~(INLCR | IGNCR | ICRNL | IXON | IXOFF);
   options.c_oflag &= ~(ONLCR | OCRNL);
-  options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+  options.c_lflag &= ~(ECHO | ECHONL | ISIG | IEXTEN);
   tcsetattr(fd, TCSANOW, &options);
 
   ChannelDataPkt channelData;
+
   for (;;) {
     auto readCnt = 0;
     while (readCnt != sizeof(ChannelDataPkt)) {
-      const auto ret =
-          read(fd, reinterpret_cast<char*>(&channelData) + readCnt, sizeof(ChannelDataPkt));
+      const auto ret = read(
+          fd, reinterpret_cast<uint8_t*>(&channelData) + readCnt, sizeof(ChannelDataPkt) - readCnt);
       if (ret == -1) { throw std::runtime_error{"read error"}; }
       readCnt += ret;
+      if (readCnt > sizeof(ChannelDataPkt)) { throw std::runtime_error{"misaligned!"}; }
     }
 
     std::cout << "Channel: " << channelData.channelID
