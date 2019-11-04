@@ -42,14 +42,28 @@ int main() {
   options.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
   tcsetattr(fd, TCSANOW, &options);
 
-  ChannelDataPkt channel1Data;
+  ChannelDataPkt channelData;
   for (;;) {
-    int  byteCnt = 0;
-    auto readCnt = read(fd, reinterpret_cast<void*>(&channel1Data), sizeof(ChannelDataPkt));
-    if (readCnt == -1) { throw std::runtime_error{"read error"}; }
+    auto readCnt = 0;
+    while (readCnt != sizeof(ChannelDataPkt)) {
+      const auto ret =
+          read(fd, reinterpret_cast<char*>(&channelData) + readCnt, sizeof(ChannelDataPkt));
+      if (ret == -1) { throw std::runtime_error{"read error"}; }
+      readCnt += ret;
+    }
 
-    std::cout << "First member: " << channel1Data.samples[0].adcData << ", Read Cnt: " << readCnt
+    std::cout << "Channel: " << channelData.channelID
+              << ", Time: " << channelData.samples[0].timestamp
+              << ", value: " << channelData.samples[0].adcData << ", readcnt: " << readCnt
               << std::endl;
+    // for (auto i = 0; i < kMaxSamplePerPkt; ++i) {
+    //   auto s = channelData.samples[i];
+    //   if (s.adcData != 0xefab || s.timestamp != 0x0123abcd) {
+    //     std::cout << "don't match " + std::to_string(i) + " " + std::to_string(s.adcData) + " " +
+    //                      std::to_string(s.timestamp)
+    //               << std::endl;
+    //   }
+    // }
   }
 
   close(fd);

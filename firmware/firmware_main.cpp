@@ -35,6 +35,27 @@ extern "C" {
 
 #include "swo_segger.h"
 
+// initialize all hardware subsystem before doing any other logic
+__attribute__((__constructor__)) void initHw() {
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  SystemClock_Config();
+
+  MX_GPIO_Init();
+  MX_DMA_Init();
+
+  MX_ADC1_Init();
+  MX_ADC2_Init();
+
+  MX_USB_DEVICE_Init();
+
+  MX_TIM2_Init();
+  MX_TIM3_Init();
+
+  HAL_Delay(1000);  // delay so that usb can initialize properly
+}
+
 class CriticalSectionLockGuard {
  public:
   CriticalSectionLockGuard() { __disable_irq(); }
@@ -76,11 +97,12 @@ class CircularBuffer {
   void write(const T& data) volatile {
     // is usb is disconnected, overwrite
     if (isFull()) {
+      SWO_PrintStringLine("Dropped");
+      // while (1) {}
       if (usbDisconnected) {
         _readIndex = getNextIndex(_readIndex);
       } else {
-        SWO_PrintStringLine("Dropped");
-        // while (1) {}
+        // empty
       }
     }
     _buf[_writeIndex] = data;
@@ -110,9 +132,7 @@ class AdcWrapper {
   AdcWrapper(ADC_HandleTypeDef& hadc, const int maxTotalConversion, const int currTotalConversion)
       : adcHandle{hadc},
         data{new AdcDataType[maxTotalConversion]},
-        _currTotalConversion{currTotalConversion} {}
-
-  void startSampling() volatile {
+        _currTotalConversion{currTotalConversion} {
     HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)(data), _currTotalConversion);
   }
 
@@ -135,15 +155,18 @@ class AdcChannel {
              const volatile AdcWrapper& adcWrapper,
              const int                  startIndex,
              const int                  endIndex)
-      : _data{channelID, 0}, _buf{adcWrapper.data}, adcHandle{adcWrapper.adcHandle} {
+      : _data{.channelID = channelID}, _buf{adcWrapper.data}, adcHandle{adcWrapper.adcHandle} {
     changeIndexRange(startIndex, endIndex);
   }
 
   void addSample() {
     AdcDataType sum = 0;
     for (auto i = _startIndex; i <= _endIndex; ++i) { sum += _buf[i]; }
-    _data.samples[_currSample].adcData = sum / (_endIndex - _startIndex + 1);
-    _data.samples[_currSample].tickCnt = getTimestamp();
+    // TODO(kd): Change back after test
+    // _data.samples[_currSample].adcData   = sum / (_endIndex - _startIndex + 1);
+    // _data.samples[_currSample].timestamp = getTimestamp();
+    _data.samples[_currSample].adcData   = 0xefab;
+    _data.samples[_currSample].timestamp = 0x0123abcd;
 
     _currSample = (_currSample + 1) % kMaxSamplePerPkt;
     if (0 == _currSample) { volatileBuf->write(_data); }
@@ -156,15 +179,19 @@ class AdcChannel {
   }
 };
 
-constexpr auto kAdc1TotalConversion = 4;
-constexpr auto kAdc2TotalConversion = 4;
+static constexpr auto kAdc1TotalConversion = 4;
+static constexpr auto kAdc2TotalConversion = 4;
 
-static std::array<volatile AdcWrapper, 2> adcs{
-    AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion},
-    AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}};
+static std::array<volatile AdcWrapper, 1> adcs{
+    AdcWrapper{hadc1, kAdc1TotalConversion, kAdc1TotalConversion}
+    // ,AdcWrapper{hadc2, kAdc2TotalConversion, kAdc2TotalConversion}
+};
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
-  static std::array<AdcChannel, 1> adcChannels{AdcChannel{0, adcs[0], 0, kAdc1TotalConversion - 1}};
+  static std::array<AdcChannel, 4> adcChannels{AdcChannel{0, adcs[0], 0, 0},
+                                               AdcChannel{1, adcs[0], 1, 1},
+                                               AdcChannel{2, adcs[0], 2, 2},
+                                               AdcChannel{3, adcs[0], 3, 3}};
 
   for (auto& adcChannel : adcChannels) {
     if (hadc == &(adcChannel.adcHandle)) { adcChannel.addSample(); }
@@ -174,24 +201,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
 auto& samplingTimer = htim3;
 
 int main(void) {
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
-
-  SystemClock_Config();
-
-  MX_GPIO_Init();
-  MX_DMA_Init();
-
-  MX_ADC1_Init();
-  MX_ADC2_Init();
-
-  MX_USB_DEVICE_Init();
-
-  MX_TIM2_Init();
-  MX_TIM3_Init();
-
-  HAL_Delay(1000);  // delay so that usb can initialize properly
-
   auto           disconnectCnt    = 0;
   auto           isEmpty          = false;
   auto           prevTransferDone = true;
@@ -199,8 +208,6 @@ int main(void) {
 
   HAL_TIM_Base_Start_IT(&samplingTimer);
   HAL_TIM_Base_Start_IT(&timestampTimer);
-
-  for (auto& adc : adcs) { adc.startSampling(); }
 
   while (1) {
     if (prevTransferDone) {
