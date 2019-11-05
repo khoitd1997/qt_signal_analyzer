@@ -4,7 +4,7 @@
 
 #include <array>
 
-static constexpr auto kMaxSamplePerPkt = 280;
+static constexpr auto kMaxSamplePerPkt = 600;
 struct ChannelDataPkt {
   // uint32_t channelID;  // 0-3
 

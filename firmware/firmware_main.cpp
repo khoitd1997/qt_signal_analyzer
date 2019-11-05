@@ -53,8 +53,6 @@ __attribute__((__constructor__)) void initHw() {
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-
-  HAL_Delay(1000);  // delay so that usb can initialize properly
 }
 
 class CriticalSectionLockGuard {
@@ -63,64 +61,46 @@ class CriticalSectionLockGuard {
   ~CriticalSectionLockGuard() { __enable_irq(); }
 };
 
-volatile bool usbDisconnected = true;
-
 auto&    timestampTimer = htim2;
 uint32_t getTimestamp() { return timestampTimer.Instance->CNT; }
 
 template <typename T, int BufferSize>
 class CircularBuffer {
  private:
-  T*   _buf        = new T[BufferSize];
-  int  _readIndex  = 0;
-  int  _writeIndex = 0;
-  bool _isFull     = false;
+  static_assert(BufferSize > 2, "Buffer size must be at least 3");
 
-  int dropCnt = 0;
+  T*  _buf        = new T[BufferSize];
+  int _readIndex  = 0;
+  int _writeIndex = 0;
 
   int getNextIndex(const int index) volatile { return ((index + 1) % BufferSize); }
 
  public:
-  bool isFull() volatile { return _isFull; }
-  bool isEmpty() volatile { return !_isFull && _writeIndex == _readIndex; }
-  T    read(bool& empty) volatile {
-    if (isEmpty()) {
-      empty = true;
-      return T();
-    }
-    empty      = false;
-    auto& ret  = _buf[_readIndex];
-    _readIndex = getNextIndex(_readIndex);
-    if (_readIndex == _writeIndex) { _isFull = false; }
-    return ret;
+  T* read() volatile {
+    auto tempIndex = getNextIndex(_readIndex);
+    if (tempIndex == _writeIndex) { return nullptr; }
+
+    _readIndex = tempIndex;
+    return &(_buf[_readIndex]);
   }
 
-  T& front() volatile { return _buf[0]; }
+  T* front() volatile { return &(_buf[0]); }
 
-  // modified from regular circular buffer to work with DMA
-  // return ref to the next element to be written
-  T& write() volatile {
-    if (isFull()) {
+  T* write() volatile {
+    auto tempIndex = getNextIndex(_writeIndex);
+    if (tempIndex == _readIndex) {
       SWO_PrintStringLine("Dropped");
-      _readIndex = getNextIndex(_readIndex);
+      return nullptr;
     }
-    _writeIndex = getNextIndex(_writeIndex);
-    if (_writeIndex == _readIndex) { _isFull = true; }
-
-    return _buf[_writeIndex];
-  }
-
-  int size() volatile {
-    return _isFull ? BufferSize
-                   : (_writeIndex < _readIndex) ? (_writeIndex + BufferSize) - _readIndex
-                                                : _writeIndex - _readIndex;
+    _writeIndex = tempIndex;
+    return &(_buf[_writeIndex]);
   }
 
   int capacity() volatile { return BufferSize; }
 };
-typedef CircularBuffer<ChannelDataPkt, 15> UsbBuffer;
-static UsbBuffer                           usbBuf;
-static volatile UsbBuffer*                 volatileBuf = &usbBuf;
+typedef CircularBuffer<ChannelDataPkt, 3> UsbBuffer;
+static UsbBuffer                          usbBuf;
+static volatile UsbBuffer*                volatileBuf = &usbBuf;
 
 using AdcDataType = uint16_t;
 class AdcWrapper {
@@ -197,17 +177,20 @@ auto& bufferSwapTimer = htim4;
 void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
   if (htim == &bufferSwapTimer) {
     SWO_PrintStringLine("buffer");
-    auto& writeElem = volatileBuf->write();
-    if (HAL_ADC_Start_DMA(
-            &hadc1, reinterpret_cast<uint32_t*>(writeElem.adcData), kMaxSamplePerPkt) != HAL_OK) {
-      while (1) {}
-    }
-    auto ret1 = HAL_TIM_IC_Start_DMA(&timestampTimer,
-                                     TIM_CHANNEL_1,
-                                     reinterpret_cast<uint32_t*>(writeElem.timestamp),
-                                     kMaxSamplePerPkt);
-    if (ret1 != HAL_OK) {
-      while (1) {}
+    auto writeElem = volatileBuf->write();
+    if (nullptr != writeElem) {
+      if (HAL_ADC_Start_DMA(&hadc1,
+                            reinterpret_cast<uint32_t*>(writeElem->adcData),
+                            kMaxSamplePerPkt) != HAL_OK) {
+        while (1) {}
+      }
+      auto ret1 = HAL_TIM_IC_Start_DMA(&timestampTimer,
+                                       TIM_CHANNEL_1,
+                                       reinterpret_cast<uint32_t*>(writeElem->timestamp),
+                                       kMaxSamplePerPkt);
+      if (ret1 != HAL_OK) {
+        while (1) {}
+      }
     }
   }
 }
@@ -215,38 +198,34 @@ void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 auto& samplingTimer = htim3;
 
 int main(void) {
-  auto           disconnectCnt    = 0;
-  auto           isEmpty          = false;
-  auto           prevTransferDone = true;
-  ChannelDataPkt pkt;
+  auto writeElem = volatileBuf->front();
+  HAL_ADC_Start_DMA(&hadc1, reinterpret_cast<uint32_t*>(writeElem->adcData), kMaxSamplePerPkt);
 
-  auto& writeElem = volatileBuf->front();
-  HAL_ADC_Start_DMA(&hadc1, reinterpret_cast<uint32_t*>(writeElem.adcData), kMaxSamplePerPkt);
-
-  // HAL_TIM_Base_Start_IT(&samplingTimer);
-  // HAL_TIM_Base_Start_IT(&timestampTimer);
   HAL_TIM_PWM_Start(&samplingTimer, TIM_CHANNEL_1);
   HAL_TIM_Base_Start_IT(&bufferSwapTimer);
   HAL_TIM_IC_Start_DMA(&timestampTimer,
                        TIM_CHANNEL_1,
-                       reinterpret_cast<uint32_t*>(writeElem.timestamp),
+                       reinterpret_cast<uint32_t*>(writeElem->timestamp),
                        kMaxSamplePerPkt);
 
-  while (1) {
-    if (prevTransferDone) {
-      CriticalSectionLockGuard l();
+  auto pkt              = volatileBuf->front();
+  auto isEmpty          = false;
+  auto prevTransferDone = true;
+  HAL_Delay(100);  // wait till there are at least some packets and for USB to init properly
 
-      usbDisconnected = (disconnectCnt >= 5);
-      pkt             = volatileBuf->read(isEmpty);
-    }
+  while (1) {
     if (!isEmpty) {
-      if (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(&pkt), sizeof(pkt))) {
-        if (!usbDisconnected) { ++disconnectCnt; }
+      prevTransferDone = true;
+      if (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(pkt), sizeof(ChannelDataPkt))) {
         prevTransferDone = false;
-      } else {
-        disconnectCnt    = 0;
-        prevTransferDone = true;
       }
+    }
+
+    if (prevTransferDone) {
+      CriticalSectionLockGuard l();  // TODO(kd): Look into disabling only specific interrupts
+
+      pkt     = volatileBuf->read();
+      isEmpty = (pkt == nullptr);
     }
   }
 }
