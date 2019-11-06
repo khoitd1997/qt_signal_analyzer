@@ -31,7 +31,7 @@ extern "C" {
 #include <numeric>
 #include <vector>
 
-#include "channel_data.hpp"
+#include "channel_data.h"
 
 #include "swo_segger.h"
 

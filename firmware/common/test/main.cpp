@@ -1,4 +1,4 @@
-#include "channel_data.hpp"
+#include "channel_data.h"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
