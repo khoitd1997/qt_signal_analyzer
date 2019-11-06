@@ -68,7 +68,7 @@ class CircularBuffer {
  private:
   static_assert(BufferSize > 2, "Buffer size must be at least 3");
 
-  T*  _buf        = new T[BufferSize];
+  T   _buf[BufferSize];
   int _readIndex  = 0;
   int _writeIndex = 0;
 
@@ -80,10 +80,10 @@ class CircularBuffer {
     if (tempIndex == _writeIndex) { return nullptr; }
 
     _readIndex = tempIndex;
-    return &(_buf[_readIndex]);
+    return _buf + _readIndex;
   }
 
-  T* front() volatile { return &(_buf[0]); }
+  T* front() volatile { return _buf; }
 
   T* write() volatile {
     auto tempIndex = getNextIndex(_writeIndex);
@@ -92,14 +92,14 @@ class CircularBuffer {
       return nullptr;
     }
     _writeIndex = tempIndex;
-    return &(_buf[_writeIndex]);
+    return _buf + _writeIndex;
   }
 
   int capacity() volatile { return BufferSize; }
 };
-typedef CircularBuffer<ChannelDataPkt, 3> UsbBuffer;
-static UsbBuffer                          usbBuf;
-static volatile UsbBuffer*                volatileBuf = &usbBuf;
+typedef CircularBuffer<volatile ChannelDataPkt, 3> UsbBuffer;
+static UsbBuffer                                   usbBuf;
+static volatile UsbBuffer*                         volatileBuf = &usbBuf;
 
 using AdcDataType = uint16_t;
 class AdcWrapper {
@@ -178,15 +178,11 @@ void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     // SWO_PrintStringLine("buffer");
     auto writeElem = volatileBuf->write();
     if (nullptr != writeElem) {
-      if (HAL_ADC_Start_DMA(&hadc1,
-                            reinterpret_cast<uint32_t*>(writeElem->adcData),
-                            kMaxSamplePerPkt) != HAL_OK) {
+      if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(writeElem->adcData), kMaxSamplePerPkt) != HAL_OK) {
         while (1) {}
       }
-      auto ret1 = HAL_TIM_IC_Start_DMA(&timestampTimer,
-                                       TIM_CHANNEL_1,
-                                       reinterpret_cast<uint32_t*>(writeElem->timestamp),
-                                       kMaxSamplePerPkt);
+      auto ret1 = HAL_TIM_IC_Start_DMA(
+          &timestampTimer, TIM_CHANNEL_1, (uint32_t*)(writeElem->timestamp), kMaxSamplePerPkt);
       // if (ret1 != HAL_OK) {
       //   while (1) {}
       // }
@@ -198,14 +194,12 @@ auto& samplingTimer = htim3;
 
 int main(void) {
   auto writeElem = volatileBuf->front();
-  HAL_ADC_Start_DMA(&hadc1, reinterpret_cast<uint32_t*>(writeElem->adcData), kMaxSamplePerPkt);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(writeElem->adcData), kMaxSamplePerPkt);
 
   HAL_TIM_PWM_Start(&samplingTimer, TIM_CHANNEL_1);
   HAL_TIM_Base_Start_IT(&bufferSwapTimer);
-  HAL_TIM_IC_Start_DMA(&timestampTimer,
-                       TIM_CHANNEL_1,
-                       reinterpret_cast<uint32_t*>(writeElem->timestamp),
-                       kMaxSamplePerPkt);
+  HAL_TIM_IC_Start_DMA(
+      &timestampTimer, TIM_CHANNEL_1, (uint32_t*)(writeElem->timestamp), kMaxSamplePerPkt);
 
   auto pkt              = volatileBuf->front();
   auto isEmpty          = false;
@@ -215,7 +209,7 @@ int main(void) {
   while (1) {
     if (!isEmpty) {
       prevTransferDone = true;
-      if (USBD_BUSY == CDC_Transmit_HS(reinterpret_cast<uint8_t*>(pkt), sizeof(ChannelDataPkt))) {
+      if (USBD_BUSY == CDC_Transmit_HS((uint8_t*)(pkt), sizeof(ChannelDataPkt))) {
         prevTransferDone = false;
       }
     }
