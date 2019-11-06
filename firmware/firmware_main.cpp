@@ -178,14 +178,16 @@ void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     // SWO_PrintStringLine("buffer");
     auto writeElem = volatileBuf->write();
     if (nullptr != writeElem) {
-      if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(writeElem->adcData), kMaxSamplePerPkt) != HAL_OK) {
-        while (1) {}
+      if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(writeElem->adcData), kMaxSamplePerPkt) ==
+          HAL_BUSY) {
+        SWO_PrintStringLine("adc busy");
       }
-      auto ret1 = HAL_TIM_IC_Start_DMA(
-          &timestampTimer, TIM_CHANNEL_1, (uint32_t*)(writeElem->timestamp), kMaxSamplePerPkt);
-      // if (ret1 != HAL_OK) {
-      //   while (1) {}
-      // }
+      if (HAL_TIM_IC_Start_DMA(&timestampTimer,
+                               TIM_CHANNEL_1,
+                               (uint32_t*)(writeElem->timestamp),
+                               kMaxSamplePerPkt) == HAL_BUSY) {
+        SWO_PrintStringLine("dma busy");
+      }
     }
   }
 }
