@@ -173,7 +173,12 @@ static constexpr auto kAdc2TotalConversion = 4;
 // }
 
 auto& bufferSwapTimer = htim4;
-void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
+class BufferSwapTimerLockGuard {
+ public:
+  BufferSwapTimerLockGuard() { __HAL_TIM_DISABLE_IT(&bufferSwapTimer, TIM_IT_UPDATE); }
+  ~BufferSwapTimerLockGuard() { __HAL_TIM_ENABLE_IT(&bufferSwapTimer, TIM_IT_UPDATE); }
+};
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
   if (htim == &bufferSwapTimer) {
     // SWO_PrintStringLine("buffer");
     auto writeElem = volatileBuf->write();
@@ -217,7 +222,7 @@ int main(void) {
     }
 
     if (prevTransferDone) {
-      CriticalSectionLockGuard l();  // TODO(kd): Look into disabling only specific interrupts
+      BufferSwapTimerLockGuard lock();
 
       pkt     = volatileBuf->read();
       isEmpty = (pkt == nullptr);
