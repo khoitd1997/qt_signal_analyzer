@@ -46,7 +46,6 @@ __attribute__((__constructor__)) void initHw() {
   MX_DMA_Init();
 
   MX_ADC1_Init();
-  MX_ADC2_Init();
 
   MX_USB_DEVICE_Init();
 
@@ -176,7 +175,7 @@ static constexpr auto kAdc2TotalConversion = 4;
 auto& bufferSwapTimer = htim4;
 void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
   if (htim == &bufferSwapTimer) {
-    SWO_PrintStringLine("buffer");
+    // SWO_PrintStringLine("buffer");
     auto writeElem = volatileBuf->write();
     if (nullptr != writeElem) {
       if (HAL_ADC_Start_DMA(&hadc1,
@@ -188,9 +187,9 @@ void  HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
                                        TIM_CHANNEL_1,
                                        reinterpret_cast<uint32_t*>(writeElem->timestamp),
                                        kMaxSamplePerPkt);
-      if (ret1 != HAL_OK) {
-        while (1) {}
-      }
+      // if (ret1 != HAL_OK) {
+      //   while (1) {}
+      // }
     }
   }
 }
