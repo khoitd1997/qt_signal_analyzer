@@ -61,7 +61,8 @@
     "typeinfo": "cpp",
     "iomanip": "cpp",
     "iostream": "cpp",
-    "complex": "cpp"
+    "complex": "cpp",
+    "chrono": "cpp"
   },
   "editor.formatOnSave": true
 }

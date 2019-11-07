@@ -46,6 +46,8 @@ __attribute__((__constructor__)) void initHw() {
   MX_DMA_Init();
 
   MX_ADC1_Init();
+  MX_ADC2_Init();
+  MX_ADC3_Init();
 
   MX_USB_DEVICE_Init();
 
@@ -172,6 +174,14 @@ static constexpr auto kAdc2TotalConversion = 4;
 //   }
 // }
 
+void startAdcDMA(volatile ChannelDataPkt* pkt) {
+  const auto ret0 = HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(pkt->adcData0), kMaxSamplePerPkt);
+  const auto ret1 = HAL_ADC_Start_DMA(&hadc2, (uint32_t*)(pkt->adcData1), kMaxSamplePerPkt);
+  const auto ret2 = HAL_ADC_Start_DMA(&hadc3, (uint32_t*)(pkt->adcData23), kMaxSamplePerPkt * 2);
+
+  if (ret0 || ret1 || ret2) { SWO_PrintStringLine("adc problem"); }
+}
+
 auto& bufferSwapTimer = htim4;
 class BufferSwapTimerLockGuard {
  public:
@@ -183,15 +193,12 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
     // SWO_PrintStringLine("buffer");
     auto writeElem = volatileBuf->write();
     if (nullptr != writeElem) {
-      if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(writeElem->adcData), kMaxSamplePerPkt) ==
-          HAL_BUSY) {
-        SWO_PrintStringLine("adc busy");
-      }
-      if (HAL_TIM_IC_Start_DMA(&timestampTimer,
-                               TIM_CHANNEL_1,
-                               (uint32_t*)(writeElem->timestamp),
-                               kMaxSamplePerPkt) == HAL_BUSY) {
-        SWO_PrintStringLine("dma busy");
+      startAdcDMA(writeElem);
+      auto ret = HAL_TIM_IC_Start_DMA(
+          &timestampTimer, TIM_CHANNEL_1, (uint32_t*)(writeElem->timestamp), kMaxSamplePerPkt);
+      if (ret != HAL_OK) {
+        SWO_PrintStringLine("dma problem");
+        if (ret == HAL_ERROR) { SWO_PrintStringLine("dma busy"); }
       }
     }
   }
@@ -201,7 +208,7 @@ auto& samplingTimer = htim3;
 
 int main(void) {
   auto writeElem = volatileBuf->front();
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)(writeElem->adcData), kMaxSamplePerPkt);
+  startAdcDMA(writeElem);
 
   HAL_TIM_PWM_Start(&samplingTimer, TIM_CHANNEL_1);
   HAL_TIM_Base_Start_IT(&bufferSwapTimer);

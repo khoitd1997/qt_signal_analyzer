@@ -85,8 +85,11 @@ int main() {
       auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
                          std::chrono::steady_clock::now() - startTime)
                          .count();
-      std::cout << "Time: " << elapsed << ", Speed: " << totalBytes * 1000000 / elapsed
-                << std::endl;
+      std::cout << "Time: " << channelData.timestamp[kMaxSamplePerPkt - 1]
+                << ", data: " << channelData.adcData0[0] << ", "
+                << channelData.adcData1[kMaxSamplePerPkt - 1] << ", "
+                << channelData.adcData23[kMaxSamplePerPkt - 1] << ", Elapsed: " << elapsed
+                << ", Speed: " << totalBytes * 1000000 / elapsed << std::endl;
 
       // for (auto i = 0; i < kMaxSamplePerPkt; ++i) {
       //   auto s = channelData.samples[i];

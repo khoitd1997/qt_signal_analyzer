@@ -30,6 +30,14 @@ The stm32 has 3 ADC and a total of 8 available ADC pins(the others were mostly t
 
 ## Timing Calculations
 
+TIM5: APB1 -> 84 MHz
+
+(2^16 - 10) / 90 * 60 * 60
+
 ![](image/2019-11-04-12-58-08.png)
 
 ![](image/2019-11-04-13-00-17.png)
+
+![](image/2019-11-06-22-37-28.png)
+
+![](image/2019-11-06-22-37-43.png)
