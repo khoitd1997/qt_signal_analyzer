@@ -9,6 +9,7 @@
 #include <cstring>
 
 #include <algorithm>
+#include <chrono>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -69,13 +70,24 @@ int main() {
     devFile.get(channelData);
   }
 
+  auto   startTime  = std::chrono::steady_clock::now();
+  double totalBytes = 0;
   {
     DeviceFile     devFile;
     ChannelDataPkt channelData;
     for (;;) {
       devFile.get(channelData);
-      std::cout << ", Time: " << channelData.timestamp[0] << ", value: " << channelData.adcData[0]
+
+      // std::cout << ", Time: " << channelData.timestamp[0] << ", value: " <<
+      // channelData.adcData[0] << std::endl;
+
+      totalBytes += sizeof(ChannelDataPkt);
+      auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
+                         std::chrono::steady_clock::now() - startTime)
+                         .count();
+      std::cout << "Time: " << elapsed << ", Speed: " << totalBytes * 1000000 / elapsed
                 << std::endl;
+
       // for (auto i = 0; i < kMaxSamplePerPkt; ++i) {
       //   auto s = channelData.samples[i];
       //   if (s.adcData != 0xefab || s.timestamp != 0x0123abcd) {
