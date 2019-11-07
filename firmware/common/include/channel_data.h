@@ -1,7 +1,7 @@
 #pragma once
 
 // both the hal generated code and c++ code need this
-#define kMaxSamplePerPkt 300
+#define kMaxSamplePerPkt 450
 
 #ifdef __cplusplus
 
