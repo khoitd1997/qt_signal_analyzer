@@ -7,7 +7,7 @@
 
 DataWorker::DataWorker(QList<QList<QVector<QPointF> *>> &newDataBuffer,
                        QList<QReadWriteLock *> newDataLock)
-    : totalBuffer(newDataBuffer.size()), newDataLock_(newDataLock),
+    : newDataLock_(newDataLock),
       newDataBuffer_(newDataBuffer) {}
 
 void DataWorker::startWork(void) {
@@ -17,7 +17,7 @@ void DataWorker::startWork(void) {
 }
 
 void DataWorker::incrementBufIndex(void) {
-  curBufIndex_ = (curBufIndex_ == totalBuffer - 1) ? 0 : curBufIndex_ + 1;
+  curBufIndex_ = (curBufIndex_ +1) % newDataBuffer_.size();
 }
 
 void DataWorker::update(void) {
@@ -29,7 +29,7 @@ void DataWorker::update(void) {
     incrementBufIndex();
   }
 
-  foreach (auto dataSerie, newDataBuffer_[curBufIndex_]) {
+  for (auto dataSerie: newDataBuffer_[curBufIndex_]) {
     for (auto j(currLimit); j < currLimit + kNewPointsPerTransfer; j++) {
       qreal y = qSin(M_PI / (50 * serieIndex) * j) + 1.5;
       qreal x = j;

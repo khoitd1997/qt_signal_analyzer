@@ -41,8 +41,6 @@
 #include "graphdatamodule.h"
 #include "scopeconstants.h"
 
-static const auto kTotalSeries = 4;
-
 QT_CHARTS_USE_NAMESPACE
 
 Q_DECLARE_METATYPE(QAbstractSeries *)
@@ -57,7 +55,7 @@ DataSource::DataSource(QObject *parent) : QObject(parent) {
     allData_[i]->reserve(kMaxTotalPoints);
   }
 
-  for (auto i = 0; i < totalBuffer; ++i) {
+  for (auto i = 0; i < kTotalNewDataBuffer; ++i) {
     newDataBuffer_.append(QList<QVector<QPointF> *>());
     newDataLock_.append(new QReadWriteLock());
     for (auto j = 0; j < kTotalSeries; ++j) {

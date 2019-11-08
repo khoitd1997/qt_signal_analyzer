@@ -87,8 +87,6 @@ private:
   QEventLoop waitLoop;
 
   QThread dataWorkerThread_;
-
-  static const int totalBuffer = 2;
 };
 
 #endif // DATASOURCE_H

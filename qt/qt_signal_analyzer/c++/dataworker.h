@@ -24,7 +24,6 @@ public slots:
 private:
   void incrementBufIndex(void);
 
-  const int totalBuffer;
   int curBufIndex_ = 0;
 
   QList<QReadWriteLock *> newDataLock_;
