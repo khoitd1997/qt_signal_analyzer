@@ -83,3 +83,6 @@ Mkfile.old
 dkms.conf
 
 **/.vscode/ipch
+
+build/*
+cube_generated/build/*
