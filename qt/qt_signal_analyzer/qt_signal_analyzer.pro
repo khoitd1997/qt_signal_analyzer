@@ -1,6 +1,6 @@
 QT += quick charts qml quickcontrols2 gui
 QT += widgets
-CONFIG += c++11
+CONFIG += c++17
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -20,7 +20,8 @@ SOURCES += \
     c++/dataworker.cpp \
     c++/graphdatamodule.cpp \
     c++/loggermodule.cpp \
-    c++/mathmodule.cpp 
+    c++/mathmodule.cpp \
+    ../../common/signal_analyzer_device.cpp
 
 RESOURCES += qml.qrc
 
@@ -42,7 +43,9 @@ HEADERS += \
     c++/graphdatamodule.h \
     c++/loggermodule.h \
     c++/mathmodule.h \
-    c++/scopeconstants.h
+    c++/scopeconstants.h \
+    ../../common/channel_data.h \
+    ../../common/signal_analyzer_device.hpp
 
 DISTFILES += \
     qmldir

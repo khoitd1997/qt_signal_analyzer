@@ -41,5 +41,6 @@
         "optional": "cpp",
         "string_view": "cpp",
         "algorithm": "cpp"
-    }
+    },
+    "editor.formatOnSave": true
 }

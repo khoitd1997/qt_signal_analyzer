@@ -86,3 +86,4 @@ dkms.conf
 
 build/*
 cube_generated/build/*
+!cube_generated/Makefile

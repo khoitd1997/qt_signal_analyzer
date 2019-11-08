@@ -1,0 +1,18 @@
+{
+    "editor.tabSize": 2,
+    "files.associations": {
+      "*.cu": "c",
+      "*.tdd": "makefile",
+      "*.cfg": "tcl",
+      "*.svd": "xml",
+      "*.emProject": "xml",
+      "*.emSession": "xml",
+      "*.hpp": "cpp",
+      "*.ks": "shellscript",
+      "*.rasi": "css",
+      "*.in": "cmake",
+      "conanfile.txt": "toml",
+      "qrandomgenerator": "cpp"
+    },
+    "editor.formatOnSave": true
+}

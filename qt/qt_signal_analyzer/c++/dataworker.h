@@ -4,6 +4,7 @@
 #include <QList>
 #include <QMutex>
 #include <QObject>
+#include <QString>
 #include <QReadWriteLock>
 
 #include "scopeconstants.h"
@@ -19,13 +20,13 @@ signals:
 
 public slots:
   void startWork(void);
-  void update(void);
 
 private:
   void incrementBufIndex(void);
 
-  int curBufIndex_ = 0;
+  QString currDevicePath_ = {};
 
+  int curBufIndex_ = 0;
   QList<QReadWriteLock *> newDataLock_;
   QList<QList<QVector<QPointF> *>> &newDataBuffer_;
 };
