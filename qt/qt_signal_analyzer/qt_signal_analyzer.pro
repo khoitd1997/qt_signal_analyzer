@@ -43,9 +43,9 @@ HEADERS += \
     c++/graphdatamodule.h \
     c++/loggermodule.h \
     c++/mathmodule.h \
-    c++/scopeconstants.h \
-    ../../common/channel_data.h \
-    ../../common/signal_analyzer_device.hpp
+    c++/scopeconstants.h
+
+INCLUDEPATH += $$PWD/../../common/
 
 DISTFILES += \
     qmldir

@@ -4,31 +4,31 @@
 #include <QList>
 #include <QMutex>
 #include <QObject>
-#include <QString>
 #include <QReadWriteLock>
+#include <QString>
 
 #include "scopeconstants.h"
 
 class DataWorker : public QObject {
   Q_OBJECT
-public:
+ public:
   explicit DataWorker(QList<QList<QVector<QPointF> *>> &newDataBuffer,
-                      QList<QReadWriteLock *> newDataLock);
+                      QList<QReadWriteLock *>           newDataLock);
 
-signals:
+ signals:
   void newDataReady(int curBufIndex);
 
-public slots:
+ public slots:
   void startWork(void);
 
-private:
+ private:
   void incrementBufIndex(void);
 
   QString currDevicePath_ = {};
 
-  int curBufIndex_ = 0;
-  QList<QReadWriteLock *> newDataLock_;
+  int                               curBufIndex_ = 0;
+  QList<QReadWriteLock *>           newDataLock_;
   QList<QList<QVector<QPointF> *>> &newDataBuffer_;
 };
 
-#endif // DATAWORKER_H
+#endif  // DATAWORKER_H

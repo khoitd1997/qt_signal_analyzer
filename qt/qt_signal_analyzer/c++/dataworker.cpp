@@ -6,6 +6,8 @@
 #include "QTimer"
 #include "QtDebug"
 
+#include "channel_data.h"
+
 DataWorker::DataWorker(QList<QList<QVector<QPointF> *>> &newDataBuffer,
                        QList<QReadWriteLock *>           newDataLock)
     : newDataLock_(newDataLock), newDataBuffer_(newDataBuffer) {}

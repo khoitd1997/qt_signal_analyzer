@@ -12,7 +12,8 @@
       "*.rasi": "css",
       "*.in": "cmake",
       "conanfile.txt": "toml",
-      "qrandomgenerator": "cpp"
+      "qrandomgenerator": "cpp",
+      "mutex": "cpp"
     },
     "editor.formatOnSave": true
 }
