@@ -11,7 +11,7 @@ class SignalAnalyzerDevice {
   std::string execCmd(const char* cmd);
 
  public:
-  SignalAnalyzerDevice();
+  SignalAnalyzerDevice(const std::string& devicePath);
   ~SignalAnalyzerDevice();
 
   void getData(ChannelDataPkt& data);

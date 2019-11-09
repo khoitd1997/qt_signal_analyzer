@@ -61,7 +61,11 @@ ApplicationWindow {
         leftPadding: sideBar.width
         onGraphImageRequested: {
             scopeView.saveGraphImage(graphImageUrl)
+
             bottomBar.actionStatus = "Graph Saved at " + graphImageUrl
+        }
+        onSignalSourceChanged: {
+            bottomBar.changeSignalSource(newSignalSource)
         }
     }
 

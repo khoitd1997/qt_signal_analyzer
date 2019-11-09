@@ -24,7 +24,7 @@ class DataWorker : public QObject {
  private:
   void incrementBufIndex(void);
 
-  QString currDevicePath_ = {};
+  QString currSignalSource_ = {};
 
   int                               curBufIndex_ = 0;
   QList<QReadWriteLock *>           newDataLock_;

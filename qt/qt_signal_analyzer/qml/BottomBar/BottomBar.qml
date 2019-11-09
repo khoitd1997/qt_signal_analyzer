@@ -12,7 +12,7 @@ Rectangle {
     color:"#2E2D2C"
 
     property var modeList: ["Live Mode", "Analyis Mode", "Device Config Mode"]
-    property string devicePath: "/dev/default"
+    property string signalSource: "Simulation"
 
     Label {
         id: actionStatusLabel
@@ -40,7 +40,7 @@ Rectangle {
         rightPadding: 10
         anchors.right: parent.right
 
-        text: "Device Connected at " + bottomBar.devicePath
+        text: "Signal Source: " + bottomBar.signalSource
         color: "#BEBCB5"
         font.pointSize: 12
     }
@@ -58,6 +58,10 @@ Rectangle {
         actionStatusLabel.text = newActionStatus;
         actionStatusLabel.visible = true
         fadeTimer.running = true
+    }
+
+    function changeSignalSource(newSignalSource) {
+        bottomBar.signalSource = newSignalSource;
     }
 
     function changeMode(newModeIndex) {

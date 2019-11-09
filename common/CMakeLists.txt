@@ -1,11 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
 project(common)
 
-if(NOT CMAKE_SYSTEM_PROCESSOR STREQUAL "arm")
-  add_library(signal_analyzer_common signal_analyzer_device.cpp)
-  target_include_directories(signal_analyzer_common PUBLIC .)
-  # add_subdirectory(test)
-else()
-  add_library(signal_analyzer_common INTERFACE)
-  target_include_directories(signal_analyzer_common INTERFACE .)
-endif()
+add_library(signal_analyzer_common INTERFACE)
+target_include_directories(signal_analyzer_common INTERFACE .)

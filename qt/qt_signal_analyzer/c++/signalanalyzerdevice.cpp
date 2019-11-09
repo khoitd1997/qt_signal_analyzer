@@ -1,4 +1,4 @@
-#include "signal_analyzer_device.hpp"
+#include "signalanalyzerdevice.hpp"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -9,24 +9,8 @@
 #include <array>
 #include <memory>
 
-// https://stackoverflow.com/questions/478898/how-do-i-execute-a-command-and-get-the-output-of-the-command-within-c-using-po
-std::string SignalAnalyzerDevice::execCmd(const char* cmd) {
-  std::array<char, 128>                    buffer;
-  std::string                              result;
-  std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-  if (!pipe) { throw std::runtime_error("popen() failed!"); }
-  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) { result += buffer.data(); }
-  return result;
-}
-
-SignalAnalyzerDevice::SignalAnalyzerDevice() {
-  auto deviceFilePath =
-      "/dev/" + execCmd(
-                    "ls -l /dev/serial/by-id | grep usb-khoitd1997_Signal_Analyzer | grep -o "
-                    "'\\w*tty\\w*'");
-  deviceFilePath.erase(remove_if(deviceFilePath.begin(), deviceFilePath.end(), isspace),
-                       deviceFilePath.end());
-  _fd = open(deviceFilePath.c_str(), O_RDWR | O_NOCTTY);
+SignalAnalyzerDevice::SignalAnalyzerDevice(const std::string& devicePath) {
+  _fd = open(devicePath.c_str(), O_RDWR | O_NOCTTY);
   if (_fd < 0) { throw std::runtime_error{"can't open device files"}; }
 
   struct termios options;

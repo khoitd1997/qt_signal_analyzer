@@ -21,7 +21,8 @@ SOURCES += \
     c++/graphdatamodule.cpp \
     c++/loggermodule.cpp \
     c++/mathmodule.cpp \
-    ../../common/signal_analyzer_device.cpp
+    c++/signalanalyzerdevice.cpp \
+    c++/signalsourcedetector.cpp
 
 RESOURCES += qml.qrc
 
@@ -43,7 +44,9 @@ HEADERS += \
     c++/graphdatamodule.h \
     c++/loggermodule.h \
     c++/mathmodule.h \
-    c++/scopeconstants.h
+    c++/scopeconstants.h \
+    c++/signalsourcedetector.hpp \
+    c++/signalanalyzerdevice.hpp
 
 INCLUDEPATH += $$PWD/../../common/
 

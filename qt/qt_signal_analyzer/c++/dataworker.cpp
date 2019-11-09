@@ -7,6 +7,7 @@
 #include "QtDebug"
 
 #include "channel_data.h"
+#include "signalanalyzerdevice.hpp"
 
 DataWorker::DataWorker(QList<QList<QVector<QPointF> *>> &newDataBuffer,
                        QList<QReadWriteLock *>           newDataLock)
@@ -18,7 +19,7 @@ void DataWorker::startWork(void) {
     currLimit += kNewPointsPerTransfer;
 
     while (!(newDataLock_[curBufIndex_]->tryLockForWrite(0))) { incrementBufIndex(); }
-    if (currDevicePath_.isEmpty()) {
+    if (currSignalSource_.isEmpty() || currSignalSource_ == "Simulation") {
       auto serieIndex = 0;
 
       for (auto dataSerie : newDataBuffer_[curBufIndex_]) {

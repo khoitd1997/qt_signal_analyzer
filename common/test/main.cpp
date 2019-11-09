@@ -17,7 +17,7 @@
 
 int main() {
   {
-    SignalAnalyzerDevice devFile;
+    SignalSourceDetector devFile;
     ChannelDataPkt       channelData;
 
     devFile.get(channelData);
@@ -26,7 +26,7 @@ int main() {
   auto   startTime  = std::chrono::steady_clock::now();
   double totalBytes = 0;
   {
-    SignalAnalyzerDevice devFile;
+    SignalSourceDetector devFile;
     ChannelDataPkt       channelData;
     for (;;) {
       devFile.get(channelData);
