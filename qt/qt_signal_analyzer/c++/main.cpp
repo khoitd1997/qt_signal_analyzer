@@ -54,7 +54,8 @@ int main(int argc, char* argv[]) {
   QQuickStyle::setStyle("Material");
   QQuickStyle::setFallbackStyle("Material");
 
-  qmlRegisterType<SignalSourceDetector>("io.qt.devicedetector", 1, 0, "SignalSourceDetector");
+  qmlRegisterSingletonType<SignalSourceDetector>(
+      "Qt.signalsourcedetector", 1, 0, "SignalSourceDetectorAPI", SignalSourceDetector::get);
 
   QQmlApplicationEngine engine;
   DataSource            dataSource(&engine);

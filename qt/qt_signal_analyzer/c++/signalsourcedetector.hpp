@@ -4,7 +4,9 @@
 
 #include "channel_data.h"
 
+#include <QJSEngine>
 #include <QObject>
+#include <QQmlEngine>
 #include <QString>
 #include <QStringList>
 
@@ -14,13 +16,14 @@ class SignalSourceDetector : public QObject {
 
  private:
   QStringList sources_;
+  explicit SignalSourceDetector(QObject *parent = nullptr);
 
  public:
-  explicit SignalSourceDetector(QObject* parent = nullptr);
-
   QStringList      sources();
   Q_INVOKABLE void updateSources();
 
+  static QObject *get(QQmlEngine *engine, QJSEngine *scriptEngine);
+
  signals:
-  void sourcesChanged();
+  void sourcesChanged(QStringList newSources);
 };

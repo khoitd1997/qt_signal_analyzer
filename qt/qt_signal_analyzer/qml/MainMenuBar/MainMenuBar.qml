@@ -3,7 +3,7 @@ import QtQuick.Controls 2.4
 import QtQuick 2.12
 import QtQuick.Dialogs 1.3
 
-import io.qt.devicedetector 1.0
+import Qt.signalsourcedetector 1.0
 
 MenuBar {
     signal graphImageRequested(string graphImageUrl)
@@ -43,22 +43,11 @@ MenuBar {
     MainMenuObject {
         title: qsTr("Edit")
 
-        Action {
-            text: qsTr("Save Graph Picture")
-            onTriggered: {
-                graphSaveDialog.visible = true
-            }
-        }
-
         MainMenuObject {
             title: qsTr("Signal Sources")
 
-            SignalSourceDetector {
-              id: signalSourceDetector
-            }
-
             Repeater {
-                model: signalSourceDetector.sources
+                model: SignalSourceDetectorAPI.sources
                 MenuItem {
                     text: modelData
                     onTriggered: {
@@ -71,9 +60,9 @@ MenuBar {
             }
 
             onAboutToShow: {
-                signalSourceDetector.updateSources()
+                SignalSourceDetectorAPI.updateSources()
             }
-    }
+        }
 
         MenuSeparator {
             leftPadding: 10

@@ -19,7 +19,7 @@ void DataWorker::startWork(void) {
     currLimit += kNewPointsPerTransfer;
 
     while (!(newDataLock_[curBufIndex_]->tryLockForWrite(0))) { incrementBufIndex(); }
-    if (currSignalSource_.isEmpty() || currSignalSource_ == "Simulation") {
+    if (currSignalSource_ == "Simulation") {
       auto serieIndex = 0;
 
       for (auto dataSerie : newDataBuffer_[curBufIndex_]) {

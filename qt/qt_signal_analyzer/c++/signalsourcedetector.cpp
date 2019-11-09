@@ -12,7 +12,7 @@
 #include <filesystem>
 #include <memory>
 
-SignalSourceDetector::SignalSourceDetector(QObject* parent) : QObject(parent) {}
+SignalSourceDetector::SignalSourceDetector(QObject *parent) : QObject(parent) {}
 
 QStringList SignalSourceDetector::sources() { return sources_; }
 
@@ -22,7 +22,7 @@ void SignalSourceDetector::updateSources() {
 
   std::string serialDir{"/dev/serial/by-id"};
   if (std::filesystem::exists(serialDir)) {
-    for (auto& p : std::filesystem::directory_iterator(serialDir)) {
+    for (auto &p : std::filesystem::directory_iterator(serialDir)) {
       const auto isAnalyzer =
           (p.path().string().find("usb-khoitd1997_Signal_Analyzer") != std::string::npos);
       if (isAnalyzer) { temp.append((std::filesystem::read_symlink(p.path()).filename()).c_str()); }
@@ -44,6 +44,14 @@ void SignalSourceDetector::updateSources() {
 
   if (isChanged) {
     sources_ = temp;
-    emit sourcesChanged();
+    emit sourcesChanged(sources_);
   }
+}
+
+QObject *SignalSourceDetector::get(QQmlEngine *engine, QJSEngine *scriptEngine) {
+  Q_UNUSED(engine)
+  Q_UNUSED(scriptEngine)
+
+  static SignalSourceDetector s;
+  return &s;
 }

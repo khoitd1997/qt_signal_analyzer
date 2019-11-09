@@ -24,7 +24,7 @@ class DataWorker : public QObject {
  private:
   void incrementBufIndex(void);
 
-  QString currSignalSource_ = {};
+  QString currSignalSource_ = "Simulation";
 
   int                               curBufIndex_ = 0;
   QList<QReadWriteLock *>           newDataLock_;
