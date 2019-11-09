@@ -23,8 +23,9 @@ void SignalSourceDetector::updateSources() {
   std::string serialDir{"/dev/serial/by-id"};
   if (std::filesystem::exists(serialDir)) {
     for (auto& p : std::filesystem::directory_iterator(serialDir)) {
-      temp.append((std::filesystem::read_symlink(p.path()).filename()).c_str());
-      qCritical() << temp.back();
+      const auto isAnalyzer =
+          (p.path().string().find("usb-khoitd1997_Signal_Analyzer") != std::string::npos);
+      if (isAnalyzer) { temp.append((std::filesystem::read_symlink(p.path()).filename()).c_str()); }
     }
   }
 
