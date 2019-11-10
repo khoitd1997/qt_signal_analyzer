@@ -2,7 +2,7 @@
 
 Device Firmware and Qt front-end code for a basic signal analyzer
 
-![](image/2018-12-29-01-47-00.png)
+![](image/2019-11-09-20-39-41.png)
 
 ## Structure
 
