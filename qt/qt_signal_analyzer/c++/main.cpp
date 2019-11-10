@@ -54,11 +54,16 @@ int main(int argc, char* argv[]) {
   QQuickStyle::setStyle("Material");
   QQuickStyle::setFallbackStyle("Material");
 
-  qmlRegisterSingletonType<SignalSourceDetector>(
-      "Qt.signalsourcedetector", 1, 0, "SignalSourceDetectorAPI", SignalSourceDetector::get);
+  qmlRegisterSingletonType<SignalSourceDetector>("Qt.analyzer.signalSourceDetector",
+                                                 1,
+                                                 0,
+                                                 "SignalSourceDetector",
+                                                 SignalSourceDetector::singletonProvider);
 
   QQmlApplicationEngine engine;
   DataSource            dataSource(&engine);
+  qmlRegisterSingletonType<DataSource>(
+      "Qt.analyzer.dataSource", 1, 0, "DataSource", DataSource::singletonProvider);
 
   QThread         graphThread;
   GraphDataModule graphModule(dataSource.allData_, &dataSource.allDataLock_);

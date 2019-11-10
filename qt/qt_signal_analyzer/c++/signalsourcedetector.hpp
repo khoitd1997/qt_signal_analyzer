@@ -22,8 +22,8 @@ class SignalSourceDetector : public QObject {
   QStringList      sources();
   Q_INVOKABLE void updateSources();
 
-  static QObject *get(QQmlEngine *engine, QJSEngine *scriptEngine);
+  static QObject *singletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine);
 
  signals:
-  void sourcesChanged(QStringList newSources);
+  void sourcesChanged();
 };

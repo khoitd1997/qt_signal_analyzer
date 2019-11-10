@@ -44,11 +44,11 @@ void SignalSourceDetector::updateSources() {
 
   if (isChanged) {
     sources_ = temp;
-    emit sourcesChanged(sources_);
+    emit sourcesChanged();
   }
 }
 
-QObject *SignalSourceDetector::get(QQmlEngine *engine, QJSEngine *scriptEngine) {
+QObject *SignalSourceDetector::singletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine) {
   Q_UNUSED(engine)
   Q_UNUSED(scriptEngine)
 

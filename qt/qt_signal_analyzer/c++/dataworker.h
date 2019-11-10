@@ -6,8 +6,12 @@
 #include <QObject>
 #include <QReadWriteLock>
 #include <QString>
+#include <QTimer>
+
+#include <memory>
 
 #include "scopeconstants.h"
+#include "signalanalyzerdevice.hpp"
 
 class DataWorker : public QObject {
   Q_OBJECT
@@ -19,12 +23,19 @@ class DataWorker : public QObject {
   void newDataReady(int curBufIndex);
 
  public slots:
-  void startWork(void);
+  void startWork();
+  void processData();
+  void changeSignalSource(QString newSource);
 
  private:
-  void incrementBufIndex(void);
+  void incrementBufIndex();
+  void prepareSignalSource();
 
-  QString currSignalSource_ = "Simulation";
+  QTimer timer_;
+
+  QString currSignalSource_    = "Simulation";
+//  QString currSignalSource_    = "ttyACM0";
+  std::shared_ptr<SignalAnalyzerDevice> device_ = nullptr;
 
   int                               curBufIndex_ = 0;
   QList<QReadWriteLock *>           newDataLock_;

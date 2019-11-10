@@ -3,7 +3,8 @@ import QtQuick.Controls 2.4
 import QtQuick 2.12
 import QtQuick.Dialogs 1.3
 
-import Qt.signalsourcedetector 1.0
+import Qt.analyzer.signalSourceDetector 1.0
+import Qt.analyzer.dataSource 1.0
 
 MenuBar {
     signal graphImageRequested(string graphImageUrl)
@@ -44,10 +45,11 @@ MenuBar {
         title: qsTr("Edit")
 
         MainMenuObject {
+            id: signalSourceMenu
             title: qsTr("Signal Sources")
 
             Repeater {
-                model: SignalSourceDetectorAPI.sources
+                model: SignalSourceDetector.sources
                 MenuItem {
                     text: modelData
                     onTriggered: {
@@ -60,7 +62,7 @@ MenuBar {
             }
 
             onAboutToShow: {
-                SignalSourceDetectorAPI.updateSources()
+                SignalSourceDetector.updateSources()
             }
         }
 
@@ -104,5 +106,9 @@ MenuBar {
             height: 1
             anchors.bottom: parent.bottom
         }
+    }
+
+    Component.onCompleted: {
+        DataSource.setGuiSource(menuBar)
     }
 }
