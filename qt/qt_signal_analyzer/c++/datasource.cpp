@@ -37,6 +37,7 @@
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QtMath>
 #include <QtQuick/QQuickItem>
+#include <QElapsedTimer>
 
 #include "dataworker.h"
 #include "graphdatamodule.h"
@@ -120,6 +121,10 @@ DataSource::~DataSource() {
 void DataSource::start(void) { emit startWork(); }
 
 void DataSource::processData(const int curBufIndex) {
+  static QElapsedTimer frameTimer;
+  if(!frameTimer.isValid()){
+      frameTimer.start();
+  }
   // move fresh data to the list of all data and trim the list if necessary
   {
     QWriteLocker lock(&allDataLock_);
@@ -136,6 +141,9 @@ void DataSource::processData(const int curBufIndex) {
     }
   }
 
-  emit startUpdate();
+  if(frameTimer.hasExpired(30)){
+      emit startUpdate();
+      frameTimer.restart();
+  }
   emit startUpdateWithNewData(curBufIndex);
 }
