@@ -25,7 +25,7 @@ signals:
 
 public slots:
   QString switchLogger(const bool isRecording, const QVariant enabledList,
-                       const QString destUrl, const QVariant nameList);
+                       const QString& destUrl, const QVariant nameList);
   void setGuiSource(QObject *measureGUI);
   void updateModule(int currBufferIndex);
 

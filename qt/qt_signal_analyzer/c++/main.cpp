@@ -33,6 +33,8 @@
 #include "mathmodule.h"
 #include "measuremodule.h"
 
+#include "signalsourcedetector.hpp"
+
 #include <QApplication>
 #include <QGuiApplication>
 #include <QObject>
@@ -44,54 +46,48 @@
 #include <QtQml/QQmlEngine>
 #include <QtQuick/QQuickView>
 
-int
-main(int argc, char* argv[])
-{
-
+int main(int argc, char* argv[]) {
   // Qt Charts uses Qt Graphics View Framework for drawing, therefore
   // QApplication must be used.
   QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QApplication app(argc, argv);
   QQuickStyle::setStyle("Material");
   QQuickStyle::setFallbackStyle("Material");
-  QQmlApplicationEngine engine;
-  DataSource dataSource(&engine);
 
-  QThread graphThread;
+  qmlRegisterSingletonType<SignalSourceDetector>("Qt.analyzer.signalSourceDetector",
+                                                 1,
+                                                 0,
+                                                 "SignalSourceDetector",
+                                                 SignalSourceDetector::singletonProvider);
+
+  QQmlApplicationEngine engine;
+  DataSource            dataSource(&engine);
+  qmlRegisterSingletonType<DataSource>(
+      "Qt.analyzer.dataSource", 1, 0, "DataSource", DataSource::singletonProvider);
+
+  QThread         graphThread;
   GraphDataModule graphModule(dataSource.allData_, &dataSource.allDataLock_);
   dataSource.prepNewModule(&graphModule, &graphThread, false);
-  qmlRegisterSingletonType<GraphDataModule>("Qt.analyzer.graphModule",
-                                            1,
-                                            0,
-                                            "GraphModule",
-                                            GraphDataModule::singletonProvider);
+  qmlRegisterSingletonType<GraphDataModule>(
+      "Qt.analyzer.graphModule", 1, 0, "GraphModule", GraphDataModule::singletonProvider);
 
-  QThread mathThread;
+  QThread    mathThread;
   MathModule mathModule(dataSource.allData_, &dataSource.allDataLock_);
   dataSource.prepNewModule(&mathModule, &mathThread, false);
-  qmlRegisterSingletonType<MathModule>("Qt.analyzer.mathModule",
-                                       1,
-                                       0,
-                                       "MathModule",
-                                       MathModule::singletonProvider);
+  qmlRegisterSingletonType<MathModule>(
+      "Qt.analyzer.mathModule", 1, 0, "MathModule", MathModule::singletonProvider);
 
-  QThread loggerThread;
+  QThread      loggerThread;
   LoggerModule loggerModule(dataSource.newDataBuffer_, dataSource.newDataLock_);
   dataSource.prepNewModule(&loggerModule, &loggerThread, true);
-  qmlRegisterSingletonType<LoggerModule>("Qt.analyzer.loggerModule",
-                                         1,
-                                         0,
-                                         "LoggerModule",
-                                         LoggerModule::singletonProvider);
+  qmlRegisterSingletonType<LoggerModule>(
+      "Qt.analyzer.loggerModule", 1, 0, "LoggerModule", LoggerModule::singletonProvider);
 
-  QThread measureThread;
+  QThread       measureThread;
   MeasureModule measureModule(dataSource.allData_, &dataSource.allDataLock_);
   dataSource.prepNewModule(&measureModule, &measureThread, false);
-  qmlRegisterSingletonType<MeasureModule>("Qt.analyzer.measureModule",
-                                          1,
-                                          0,
-                                          "MeasureModule",
-                                          MeasureModule::singletonProvider);
+  qmlRegisterSingletonType<MeasureModule>(
+      "Qt.analyzer.measureModule", 1, 0, "MeasureModule", MeasureModule::singletonProvider);
 
   engine.rootContext()->setContextProperty("dataSource", &dataSource);
 

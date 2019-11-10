@@ -170,11 +170,11 @@ Item {
             }
 
             function changeMeasureResults() {
-                console.log("Changing meausurement results");
+                // console.log("Changing meausurement results");
                 var newItems = MeasureModule.getResult();
-                for(var i = 0; i < newItems.length; ++i) {
-                    console.log(newItems[i]);
-                }
+                // for(var i = 0; i < newItems.length; ++i) {
+                //     console.log(newItems[i]);
+                // }
                 measureColumnRepeater.valueList = newItems;
             }
 
@@ -202,7 +202,7 @@ Item {
             onAccepted: {
                 loggerButton.elapsedTime = 0;
                 var urlStripped = (loggerSaveDialog.fileUrls.toString()+"").replace('file://', '');
-                console.log(urlStripped);
+                // console.log(urlStripped);
                 var res = LoggerModule.switchLogger(true, loggerButton.serieEnabledList, urlStripped, signalNames);
                 
                 if(res === "") {

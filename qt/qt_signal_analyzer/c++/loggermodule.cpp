@@ -20,7 +20,7 @@ QObject *LoggerModule::singletonProvider(QQmlEngine *engine,
 
 QString LoggerModule::switchLogger(const bool isRecording,
                                    const QVariant enabledList,
-                                   const QString destUrl,
+                                   const QString& destUrl,
                                    const QVariant nameList) {
   QMutexLocker enabledListLock(&enabledListMutex);
 

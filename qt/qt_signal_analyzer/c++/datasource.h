@@ -30,7 +30,6 @@
 #ifndef DATASOURCE_H
 #define DATASOURCE_H
 
-#include "QEventLoop"
 #include <QMutex>
 #include <QQmlApplicationEngine>
 #include <QReadWriteLock>
@@ -39,10 +38,13 @@
 #include <QtCharts/QAbstractSeries>
 #include <QtCharts/QXYSeries>
 #include <QtCore/QObject>
+#include "QEventLoop"
 
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
+
+#include <QStringList>
 
 #include "dataworker.h"
 #include "graphdatamodule.h"
@@ -59,36 +61,41 @@ QT_CHARTS_USE_NAMESPACE
 class DataSource : public QObject {
   Q_OBJECT
 
-signals:
+ signals:
   void startWork();
   void startUpdate(void);
   void startUpdateWithNewData(int curBufIndex);
 
-public:
+ public:
   explicit DataSource(QObject *parent = nullptr);
   ~DataSource();
-  void prepNewModule(QObject *scopeModule, QThread *moduleThread,
-                     const bool needNewData);
 
-  QReadWriteLock allDataLock_;
-  QList<QVector<QPointF> *> allData_;
-  QList<QReadWriteLock *> newDataLock_;
+  static QObject *singletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine);
+
+  void prepNewModule(QObject *scopeModule, QThread *moduleThread, const bool needNewData);
+
+  QReadWriteLock                   allDataLock_;
+  QList<QVector<QPointF> *>        allData_;
+  QList<QReadWriteLock *>          newDataLock_;
   QList<QList<QVector<QPointF> *>> newDataBuffer_;
 
-public slots:
+ public slots:
   void start(void);
   void processData(const int currBufIndex);
+  void setGuiSource(QObject *gui);
 
-private:
+ private:
+  static DataSource *singleton;
+
+  QObject *guiObj_ = nullptr;
+
   DataWorker *dataWorker_ = nullptr;
 
-  uint totalFinished_ = 0;
-  QMutex eventCounterLock;
+  uint       totalFinished_ = 0;
+  QMutex     eventCounterLock;
   QEventLoop waitLoop;
 
   QThread dataWorkerThread_;
-
-  static const int totalBuffer = 2;
 };
 
-#endif // DATASOURCE_H
+#endif  // DATASOURCE_H

@@ -28,6 +28,7 @@
 ****************************************************************************/
 
 #include "datasource.h"
+#include <QDebug>
 #include <QQmlApplicationEngine>
 #include <QQmlProperty>
 #include <QtCharts/QAreaSeries>
@@ -36,28 +37,31 @@
 #include <QtCore/QRandomGenerator>
 #include <QtCore/QtMath>
 #include <QtQuick/QQuickItem>
+#include <QElapsedTimer>
 
 #include "dataworker.h"
 #include "graphdatamodule.h"
 #include "scopeconstants.h"
-
-static const auto kTotalSeries = 4;
 
 QT_CHARTS_USE_NAMESPACE
 
 Q_DECLARE_METATYPE(QAbstractSeries *)
 Q_DECLARE_METATYPE(QAbstractAxis *)
 
+DataSource *DataSource::singleton = nullptr;
+
 DataSource::DataSource(QObject *parent) : QObject(parent) {
   qRegisterMetaType<QAbstractSeries *>();
   qRegisterMetaType<QAbstractAxis *>();
+
+  singleton = this;
 
   for (auto i = 0; i < kTotalSeries; ++i) {
     allData_.append(new QVector<QPointF>());
     allData_[i]->reserve(kMaxTotalPoints);
   }
 
-  for (auto i = 0; i < totalBuffer; ++i) {
+  for (auto i = 0; i < kTotalNewDataBuffer; ++i) {
     newDataBuffer_.append(QList<QVector<QPointF> *>());
     newDataLock_.append(new QReadWriteLock());
     for (auto j = 0; j < kTotalSeries; ++j) {
@@ -72,21 +76,36 @@ DataSource::DataSource(QObject *parent) : QObject(parent) {
   dataWorker_ = new DataWorker(newDataBuffer_, newDataLock_);
   dataWorker_->moveToThread(&dataWorkerThread_);
 
-  connect(&dataWorkerThread_, &QThread::finished, dataWorker_,
-          &QObject::deleteLater);
+  connect(&dataWorkerThread_, &QThread::finished, dataWorker_, &QObject::deleteLater);
   connect(this, &DataSource::startWork, dataWorker_, &DataWorker::startWork);
-  connect(dataWorker_, &DataWorker::newDataReady, this,
-          &DataSource::processData);
+  connect(dataWorker_, &DataWorker::newDataReady, this, &DataSource::processData);
   dataWorkerThread_.start();
 }
 
-void DataSource::prepNewModule(QObject *scopeModule, QThread *moduleThread,
+QObject *DataSource::singletonProvider(QQmlEngine *engine, QJSEngine *scriptEngine) {
+  Q_UNUSED(engine)
+  Q_UNUSED(scriptEngine)
+
+  return DataSource::singleton;
+}
+
+void DataSource::setGuiSource(QObject *gui) {
+  guiObj_ = gui;
+  QObject::connect(guiObj_,
+                   SIGNAL(signalSourceChanged(QString)),
+                   dataWorker_,
+                   SLOT(changeSignalSource(QString)));
+
+  qCritical() << "Setting GUI Source";
+}
+
+void DataSource::prepNewModule(QObject *  scopeModule,
+                               QThread *  moduleThread,
                                const bool needNewData) {
   scopeModule->moveToThread(moduleThread);
   connect(moduleThread, &QThread::finished, scopeModule, &QObject::deleteLater);
   if (needNewData) {
-    connect(this, SIGNAL(startUpdateWithNewData(int)), scopeModule,
-            SLOT(updateModule(int)));
+    connect(this, SIGNAL(startUpdateWithNewData(int)), scopeModule, SLOT(updateModule(int)));
   } else {
     connect(this, SIGNAL(startUpdate()), scopeModule, SLOT(updateModule()));
   }
@@ -102,10 +121,14 @@ DataSource::~DataSource() {
 void DataSource::start(void) { emit startWork(); }
 
 void DataSource::processData(const int curBufIndex) {
+  static QElapsedTimer frameTimer;
+  if(!frameTimer.isValid()){
+      frameTimer.start();
+  }
   // move fresh data to the list of all data and trim the list if necessary
   {
     QWriteLocker lock(&allDataLock_);
-    QReadLocker readLock(newDataLock_[curBufIndex]);
+    QReadLocker  readLock(newDataLock_[curBufIndex]);
     for (auto i = 0; i < kTotalSeries; ++i) {
       (allData_[i])->append(*(newDataBuffer_[curBufIndex][i]));
 
@@ -113,12 +136,14 @@ void DataSource::processData(const int curBufIndex) {
       if ((allData_[i])->size() > kStorageThreshold * kMaxTotalPoints) {
         //   qDebug() << "Free elements" << endl;
         (allData_[i])
-            ->erase((allData_[i])->begin(),
-                    (allData_[i])->begin() + (allData_[i])->size() / 2);
+            ->erase((allData_[i])->begin(), (allData_[i])->begin() + (allData_[i])->size() / 2);
       }
     }
   }
 
-  emit startUpdate();
+  if(frameTimer.hasExpired(30)){
+      emit startUpdate();
+      frameTimer.restart();
+  }
   emit startUpdateWithNewData(curBufIndex);
 }
